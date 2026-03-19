@@ -41,15 +41,6 @@ async function startServer() {
   app.use(cors(corsOptions));
   app.use(express.json());
 
-  // Serve Static Frontend Files
-  const frontendPath = path.join(__dirname, "../frontend/dist");
-  const productionFrontendPath = path.join(__dirname, "../../frontend/dist");
-
-  // Determine which path to use (dev vs production build)
-  const finalFrontendPath = process.env.NODE_ENV === "production" ? productionFrontendPath : frontendPath;
-
-  app.use(express.static(finalFrontendPath));
-
   // API routes
   app.use("/api/auth", authRoutes);
   app.use("/api/user", userRoutes);
@@ -67,11 +58,13 @@ async function startServer() {
     });
   });
 
-  // Handle SPA routing - redirect all non-API requests to index.html
-  app.get("*", (req, res) => {
-    if (!req.path.startsWith("/api")) {
-      res.sendFile(path.join(finalFrontendPath, "index.html"));
-    }
+  // Root Route
+  app.get("/", (req, res) => {
+    res.json({ 
+      message: "Flood Prediction API is running successfully",
+      version: "1.0.0",
+      docs: "/api/health"
+    });
   });
 
   // Auto Flood Prediction Every 10 Minutes
