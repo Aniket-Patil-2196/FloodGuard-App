@@ -43,11 +43,11 @@ export default function UserDashboard() {
   };
 
   const fetchNews = useCallback(async () => {
-    const city = localStorage.getItem("city") || "Sangli";
+    const cityName = user.village || 'Sangli';
     
     try {
       setNewsLoading(true);
-      const newsRes = await fetch(`${API_URL}/api/weather/news?city=${city}`, {
+      const newsRes = await fetch(`${API_URL}/api/weather/news?city=${cityName}`, {
         headers: { 'Authorization': `Bearer ${user.token}` }
       });
       
@@ -84,12 +84,11 @@ export default function UserDashboard() {
     }
 
     setLoading(true);
-    const city = localStorage.getItem("city") || "Sangli";
-    console.log("User city:", city);
+    const cityName = user.village || 'Sangli';
 
     const fetchWeather = async () => {
       try {
-        const weatherRes = await fetch(`${API_URL}/api/weather/${city}`, {
+        const weatherRes = await fetch(`${API_URL}/api/weather/${cityName}`, {
           headers: { 'Authorization': `Bearer ${user.token}` }
         });
         const result = await weatherRes.json();
@@ -172,7 +171,7 @@ export default function UserDashboard() {
       <header className="flex flex-wrap items-center justify-between gap-6">
         <div className="space-y-1">
           <h1 className="text-4xl font-bold tracking-tight text-white">Namaste, {user.name}</h1>
-          <p className="text-slate-400 text-lg">Monitoring flood risk for <span className="text-blue-400 font-semibold">{user.city || user.village}</span></p>
+          <p className="text-slate-400 text-lg">Monitoring flood risk for <span className="text-blue-400 font-semibold">{user.village}</span></p>
         </div>
         <div className="flex items-center gap-4">
           <button 
@@ -258,7 +257,7 @@ export default function UserDashboard() {
             <div className="analysis-card">
               <div className="p-5 bg-slate-800/40 rounded-2xl border border-white/5 hover:bg-slate-800/60 transition-colors">
                 <p className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2">Location</p>
-                <p className="text-lg font-bold text-slate-200">{weather?.name || (localStorage.getItem("city") || "Sangli")}</p>
+                <p className="text-lg font-bold text-slate-200">{weather?.name || 'Sangli, Maharashtra'}</p>
               </div>
               <div className="p-5 bg-slate-800/40 rounded-2xl border border-white/5 hover:bg-slate-800/60 transition-colors">
                 <p className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2">Temperature</p>

@@ -22,7 +22,6 @@ export default function Login() {
       });
       const data = await res.json();
       if (res.ok) {
-        localStorage.setItem('city', data.city);
         login(data);
         navigate(data.role === 'admin' ? '/admin' : '/dashboard');
       } else {

@@ -3,7 +3,10 @@ dotenv.config();
 
 import express from "express";
 import path from "path";
+import { fileURLToPath } from "url";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import { createServer as createViteServer } from "vite";
 import cors from "cors";
 import cron from "node-cron";
@@ -11,7 +14,6 @@ import axios from "axios";
 
 import connectDB from "./backend/config/db";
 import authRoutes from "./backend/routes/authRoutes";
-import userRoutes from "./backend/routes/userRoutes";
 import alertRoutes from "./backend/routes/alertRoutes";
 import weatherRoutes from "./backend/routes/weatherRoutes";
 import predictionRoutes from "./backend/routes/predictionRoutes";
@@ -34,7 +36,7 @@ async function startServer() {
   await connectDB();
 
   const app = express();
-  const PORT = process.env.PORT || 5000;
+  const PORT = process.env.PORT || 3000;
 
   const corsOptions = {
     origin: process.env.FRONTEND_URL || "*",
@@ -45,7 +47,6 @@ async function startServer() {
 
   // API routes
   app.use("/api/auth", authRoutes);
-  app.use("/api/user", userRoutes);
   app.use("/api/alerts", alertRoutes);
   app.use("/api/weather", weatherRoutes);
   app.use("/api/predictions", predictionRoutes);
@@ -84,7 +85,7 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
+    const distPath = __dirname;
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
       res.sendFile(path.resolve(distPath, "index.html"));
