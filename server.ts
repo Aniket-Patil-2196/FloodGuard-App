@@ -10,16 +10,16 @@ import cors from "cors";
 import cron from "node-cron";
 import axios from "axios";
 
-import connectDB from "./backend/config/db";
-import authRoutes from "./backend/routes/authRoutes";
-import userRoutes from "./backend/routes/userRoutes";
-import alertRoutes from "./backend/routes/alertRoutes";
-import weatherRoutes from "./backend/routes/weatherRoutes";
-import predictionRoutes from "./backend/routes/predictionRoutes";
-import chatbotRoutes from "./backend/routes/chatbotRoutes";
+import connectDB from "./config/db";
+import authRoutes from "./routes/authRoutes";
+import userRoutes from "./routes/userRoutes";
+import alertRoutes from "./routes/alertRoutes";
+import weatherRoutes from "./routes/weatherRoutes";
+import predictionRoutes from "./routes/predictionRoutes";
+import chatbotRoutes from "./routes/chatbotRoutes";
 
-import { fetchRainfallData } from "./backend/services/weatherService";
-import { predictFlood } from "./backend/services/predictionService";
+import { fetchRainfallData } from "./services/weatherService";
+import { predictFlood } from "./services/predictionService";
 
 async function startServer() {
   // Validate critical environment variables

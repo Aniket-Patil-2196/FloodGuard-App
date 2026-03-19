@@ -8,6 +8,5 @@
     "strict": false,
     "skipLibCheck": true
   },
-  "include": ["server.ts", "backend/**/*"],
-  "exclude": ["node_modules", "dist", "src"]
+  "include": ["server.ts", "routes", "controllers", "models"]
 }
