@@ -41,6 +41,15 @@ async function startServer() {
   app.use(cors(corsOptions));
   app.use(express.json());
 
+  // Serve Static Frontend Files
+  const frontendPath = path.join(__dirname, "../frontend/dist");
+  const productionFrontendPath = path.join(__dirname, "../../frontend/dist");
+
+  // Determine which path to use (dev vs production build)
+  const finalFrontendPath = process.env.NODE_ENV === "production" ? productionFrontendPath : frontendPath;
+
+  app.use(express.static(finalFrontendPath));
+
   // API routes
   app.use("/api/auth", authRoutes);
   app.use("/api/user", userRoutes);
@@ -58,23 +67,12 @@ async function startServer() {
     });
   });
 
-  // Root Route
-  app.get("/", (req, res) => {
-    res.send("API is running successfully");
+  // Handle SPA routing - redirect all non-API requests to index.html
+  app.get("*", (req, res) => {
+    if (!req.path.startsWith("/api")) {
+      res.sendFile(path.join(finalFrontendPath, "index.html"));
+    }
   });
-
-  // Serve Static Frontend Files (Optional/Production)
-  if (process.env.NODE_ENV === "production") {
-    const frontendPath = path.join(__dirname, "../../frontend/dist");
-    app.use(express.static(frontendPath));
-    
-    // Handle SPA routing - redirect all non-API requests to index.html
-    app.get("*", (req, res) => {
-      if (!req.path.startsWith("/api")) {
-        res.sendFile(path.join(frontendPath, "index.html"));
-      }
-    });
-  }
 
   // Auto Flood Prediction Every 10 Minutes
   cron.schedule("*/10 * * * *", async () => {
