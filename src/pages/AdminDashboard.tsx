@@ -5,6 +5,7 @@ import { Users, Bell, CloudRain, Activity, Send, Play, Loader2 } from 'lucide-re
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const apiUrl = import.meta.env.VITE_API_URL || '';
   const [users, setUsers] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [predictions, setPredictions] = useState([]);
@@ -17,13 +18,13 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const usersRes = await fetch('/api/auth/users', { headers: { 'Authorization': `Bearer ${user.token}` } });
+        const usersRes = await fetch(`${apiUrl}/api/auth/users`, { headers: { 'Authorization': `Bearer ${user.token}` } });
         setUsers(await usersRes.json());
 
-        const alertsRes = await fetch('/api/alerts', { headers: { 'Authorization': `Bearer ${user.token}` } });
+        const alertsRes = await fetch(`${apiUrl}/api/alerts`, { headers: { 'Authorization': `Bearer ${user.token}` } });
         setAlerts(await alertsRes.json());
 
-        const predRes = await fetch('/api/predictions', { headers: { 'Authorization': `Bearer ${user.token}` } });
+        const predRes = await fetch(`${apiUrl}/api/predictions`, { headers: { 'Authorization': `Bearer ${user.token}` } });
         setPredictions(await predRes.json());
       } catch (err) {
         console.error(err);
@@ -36,7 +37,7 @@ export default function AdminDashboard() {
     e.preventDefault();
     setLoadingAlert(true);
     try {
-      const res = await fetch('/api/alerts/send', {
+      const res = await fetch(`${apiUrl}/api/alerts/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user.token}` },
         body: JSON.stringify(alertForm)
@@ -45,7 +46,7 @@ export default function AdminDashboard() {
         alert('Alert sent successfully!');
         setAlertForm({ village: '', riskLevel: 'HIGH', message: '', broadcastToAll: false });
         // Refresh alerts
-        const alertsRes = await fetch('/api/alerts', { headers: { 'Authorization': `Bearer ${user.token}` } });
+        const alertsRes = await fetch(`${apiUrl}/api/alerts`, { headers: { 'Authorization': `Bearer ${user.token}` } });
         setAlerts(await alertsRes.json());
       }
     } catch (err) {
@@ -59,7 +60,7 @@ export default function AdminDashboard() {
     e.preventDefault();
     setLoadingPred(true);
     try {
-      const res = await fetch('/api/predictions/trigger', {
+      const res = await fetch(`${apiUrl}/api/predictions/trigger`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user.token}` },
         body: JSON.stringify(predForm)
@@ -78,7 +79,7 @@ export default function AdminDashboard() {
   const handleTestSMS = async () => {
     setLoadingSMS(true);
     try {
-      const res = await fetch('/api/alerts/test-sms', {
+      const res = await fetch(`${apiUrl}/api/alerts/test-sms`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user.token}` },
         body: JSON.stringify({ phone: user.phone })

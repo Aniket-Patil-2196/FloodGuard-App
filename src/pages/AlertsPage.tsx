@@ -9,8 +9,9 @@ export default function AlertsPage() {
 
   useEffect(() => {
     const fetchAlerts = async () => {
+      const apiUrl = import.meta.env.VITE_API_URL || '';
       try {
-        const res = await fetch('/api/alerts', {
+        const res = await fetch(`${apiUrl}/api/alerts`, {
           headers: { 'Authorization': `Bearer ${user.token}` }
         });
         const data = await res.json();
