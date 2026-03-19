@@ -5,6 +5,7 @@ import { CloudRain, Thermometer, Droplets, Home as HomeIcon, Send, Bot, ShieldAl
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import { API_URL } from '../config';
 
 const CACHE_KEY_WEATHER = 'floodguard_weather_cache';
 const CACHE_KEY_ALERTS = 'floodguard_alerts_cache';
@@ -42,12 +43,11 @@ export default function UserDashboard() {
   };
 
   const fetchNews = useCallback(async () => {
-    const apiUrl = import.meta.env.VITE_API_URL || '';
-    const cityName = user.village || 'Sangli';
+    const city = localStorage.getItem("city") || "Sangli";
     
     try {
       setNewsLoading(true);
-      const newsRes = await fetch(`${apiUrl}/api/weather/news?city=${cityName}`, {
+      const newsRes = await fetch(`${API_URL}/api/weather/news?city=${city}`, {
         headers: { 'Authorization': `Bearer ${user.token}` }
       });
       
@@ -84,12 +84,12 @@ export default function UserDashboard() {
     }
 
     setLoading(true);
-    const apiUrl = import.meta.env.VITE_API_URL || '';
-    const cityName = user.village || 'Sangli';
+    const city = localStorage.getItem("city") || "Sangli";
+    console.log("User city:", city);
 
     const fetchWeather = async () => {
       try {
-        const weatherRes = await fetch(`${apiUrl}/api/weather/${cityName}`, {
+        const weatherRes = await fetch(`${API_URL}/api/weather/${city}`, {
           headers: { 'Authorization': `Bearer ${user.token}` }
         });
         const result = await weatherRes.json();
@@ -104,7 +104,7 @@ export default function UserDashboard() {
 
     const fetchAlerts = async () => {
       try {
-        const alertsRes = await fetch(`${apiUrl}/api/alerts`, {
+        const alertsRes = await fetch(`${API_URL}/api/alerts`, {
           headers: { 'Authorization': `Bearer ${user.token}` }
         });
         const alertsData = await alertsRes.json();
@@ -141,7 +141,7 @@ export default function UserDashboard() {
     e.preventDefault();
     if (!chatMsg.trim()) return;
     
-    const res = await fetch('/api/chat', {
+    const res = await fetch(`${API_URL}/api/chat`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -172,7 +172,7 @@ export default function UserDashboard() {
       <header className="flex flex-wrap items-center justify-between gap-6">
         <div className="space-y-1">
           <h1 className="text-4xl font-bold tracking-tight text-white">Namaste, {user.name}</h1>
-          <p className="text-slate-400 text-lg">Monitoring flood risk for <span className="text-blue-400 font-semibold">{user.village}</span></p>
+          <p className="text-slate-400 text-lg">Monitoring flood risk for <span className="text-blue-400 font-semibold">{user.city || user.village}</span></p>
         </div>
         <div className="flex items-center gap-4">
           <button 
@@ -258,7 +258,7 @@ export default function UserDashboard() {
             <div className="analysis-card">
               <div className="p-5 bg-slate-800/40 rounded-2xl border border-white/5 hover:bg-slate-800/60 transition-colors">
                 <p className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2">Location</p>
-                <p className="text-lg font-bold text-slate-200">{weather?.name || 'Sangli, Maharashtra'}</p>
+                <p className="text-lg font-bold text-slate-200">{weather?.name || (localStorage.getItem("city") || "Sangli")}</p>
               </div>
               <div className="p-5 bg-slate-800/40 rounded-2xl border border-white/5 hover:bg-slate-800/60 transition-colors">
                 <p className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2">Temperature</p>

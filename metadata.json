@@ -1,5 +1,5 @@
 {
-  "name": "FloodGuard: AI Prediction & Alert System",
+  "name": "Remix: FloodGuard: AI Prediction \u0026 Alert System",
   "description": "A comprehensive flood prediction and emergency alert system using Gemini AI, real-time weather data, and SMS notifications.",
   "requestFramePermissions": [
     "geolocation"

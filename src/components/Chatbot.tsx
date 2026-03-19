@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Send, MessageSquare, X, Minus, Maximize2, Bot, User, Loader2, Languages, ShieldAlert, Info, MapPin, Mic, MicOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import ReactMarkdown from 'react-markdown';
+import { API_URL } from '../config';
 
 interface Message {
   id: string;
@@ -80,7 +81,7 @@ export default function Chatbot() {
         parts: [{ text: m.text }]
       }));
 
-      const response = await fetch('/api/chat', {
+      const response = await fetch(`${API_URL}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
