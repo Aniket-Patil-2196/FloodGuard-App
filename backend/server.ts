@@ -2,8 +2,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
+import path from "path";
 import cors from "cors";
 import cron from "node-cron";
+import axios from "axios";
+
 import connectDB from "./config/db";
 import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
@@ -29,7 +32,7 @@ async function startServer() {
   await connectDB();
 
   const app = express();
-  const PORT = process.env.PORT || 5000;
+  const PORT = process.env.PORT || 3000;
 
   const corsOptions = {
     origin: process.env.FRONTEND_URL || "*",
@@ -46,9 +49,32 @@ async function startServer() {
   app.use("/api/predictions", predictionRoutes);
   app.use("/api/chat", chatbotRoutes);
 
+  // Health Check Route
   app.get("/api/health", (req, res) => {
-    res.json({ status: "ok", database: "floodDB" });
+    res.json({ 
+      status: "ok", 
+      message: "Flood Prediction API is healthy",
+      timestamp: new Date().toISOString()
+    });
   });
+
+  // Root Route
+  app.get("/", (req, res) => {
+    res.send("API is running successfully");
+  });
+
+  // Serve Static Frontend Files (Optional/Production)
+  if (process.env.NODE_ENV === "production") {
+    const frontendPath = path.join(__dirname, "../../frontend/dist");
+    app.use(express.static(frontendPath));
+    
+    // Handle SPA routing - redirect all non-API requests to index.html
+    app.get("*", (req, res) => {
+      if (!req.path.startsWith("/api")) {
+        res.sendFile(path.join(frontendPath, "index.html"));
+      }
+    });
+  }
 
   // Auto Flood Prediction Every 10 Minutes
   cron.schedule("*/10 * * * *", async () => {
