@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.tsx';
-import { motion } from 'motion/react';
 import { Users, Bell, CloudRain, Activity, Send, Play, Loader2 } from 'lucide-react';
 import { API_URL } from '../config';
 
 export default function AdminDashboard() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [users, setUsers] = useState([]);
   const [alerts, setAlerts] = useState([]);
-  const [predictions, setPredictions] = useState([]);
   const [alertForm, setAlertForm] = useState({ village: '', riskLevel: 'HIGH', message: '', broadcastToAll: false });
   const [predForm, setPredForm] = useState({ village: '', rainfall: 50, river_level: 5, elevation: 550, soil_moisture: 40, slope: 2 });
   const [loadingAlert, setLoadingAlert] = useState(false);
@@ -19,6 +17,12 @@ export default function AdminDashboard() {
     const fetchData = async () => {
       try {
         const usersRes = await fetch(`${API_URL}/api/auth/users`, { headers: { 'Authorization': `Bearer ${user.token}` } });
+        
+        if (usersRes.status === 401) {
+          logout();
+          return;
+        }
+
         if (usersRes.ok) {
           const usersData = await usersRes.json();
           if (Array.isArray(usersData)) {
@@ -31,6 +35,12 @@ export default function AdminDashboard() {
         }
 
         const alertsRes = await fetch(`${API_URL}/api/alerts`, { headers: { 'Authorization': `Bearer ${user.token}` } });
+        
+        if (alertsRes.status === 401) {
+          logout();
+          return;
+        }
+
         if (alertsRes.ok) {
           const alertsData = await alertsRes.json();
           if (Array.isArray(alertsData)) {
@@ -43,6 +53,12 @@ export default function AdminDashboard() {
         }
 
         const predRes = await fetch(`${API_URL}/api/predictions`, { headers: { 'Authorization': `Bearer ${user.token}` } });
+        
+        if (predRes.status === 401) {
+          logout();
+          return;
+        }
+
         if (predRes.ok) {
           const predData = await predRes.json();
           if (Array.isArray(predData)) {
@@ -58,7 +74,7 @@ export default function AdminDashboard() {
       }
     };
     fetchData();
-  }, [user]);
+  }, [user, logout]);
 
   const handleSendAlert = async (e) => {
     e.preventDefault();

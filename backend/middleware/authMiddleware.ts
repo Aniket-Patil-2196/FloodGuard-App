@@ -7,22 +7,36 @@ export const protect = async (req: any, res: Response, next: NextFunction) => {
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       token = req.headers.authorization.split(' ')[1];
-      const decoded: any = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+      console.log('Token received, length:', token.length);
+      
+      const secret = process.env.JWT_SECRET || 'secret';
+      console.log('Using JWT_SECRET length:', secret.length);
+
+      const decoded: any = jwt.verify(token, secret);
+      console.log('Token verified, decoded id:', decoded.id);
+      
       req.user = await User.findById(decoded.id).select('-password');
-      next();
+      
+      if (!req.user) {
+        return res.status(401).json({ message: 'Not authorized, user not found' });
+      }
+      
+      return next();
     } catch (error) {
-      res.status(401).json({ message: 'Not authorized, token failed' });
+      console.error('JWT Verification Error:', error);
+      return res.status(401).json({ message: 'Not authorized, token failed' });
     }
   }
+  
   if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token' });
+    return res.status(401).json({ message: 'Not authorized, no token' });
   }
 };
 
 export const admin = (req: any, res: Response, next: NextFunction) => {
   if (req.user && req.user.role === 'admin') {
-    next();
+    return next();
   } else {
-    res.status(401).json({ message: 'Not authorized as an admin' });
+    return res.status(401).json({ message: 'Not authorized as an admin' });
   }
 };

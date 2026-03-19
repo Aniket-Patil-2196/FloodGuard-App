@@ -28,6 +28,7 @@ async function startServer() {
     console.error('Please check your .env file.');
     process.exit(1);
   }
+  console.log('JWT_SECRET length:', process.env.JWT_SECRET?.length);
 
   await connectDB();
 

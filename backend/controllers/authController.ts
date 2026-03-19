@@ -5,7 +5,9 @@ import User from '../models/User';
 import { sendSMS } from '../services/smsService';
 
 const generateToken = (id: string) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || 'secret', { expiresIn: '30d' });
+  const secret = process.env.JWT_SECRET || 'secret';
+  console.log('Generating token with JWT_SECRET length:', secret.length);
+  return jwt.sign({ id }, secret, { expiresIn: '30d' });
 };
 
 export const registerUser = async (req: Request, res: Response) => {
