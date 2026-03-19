@@ -5,6 +5,7 @@ import { CloudRain, Thermometer, Droplets, Home as HomeIcon, Send, Bot, ShieldAl
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import { API_URL } from '../config';
 
 const CACHE_KEY_WEATHER = 'floodguard_weather_cache';
 const CACHE_KEY_ALERTS = 'floodguard_alerts_cache';
@@ -42,12 +43,11 @@ export default function UserDashboard() {
   };
 
   const fetchNews = useCallback(async () => {
-    const apiUrl = import.meta.env.VITE_API_URL || '';
     const cityName = user.village || 'Sangli';
     
     try {
       setNewsLoading(true);
-      const newsRes = await fetch(`${apiUrl}/api/weather/news?city=${cityName}`, {
+      const newsRes = await fetch(`${API_URL}/api/weather/news?city=${cityName}`, {
         headers: { 'Authorization': `Bearer ${user.token}` }
       });
       
@@ -84,12 +84,11 @@ export default function UserDashboard() {
     }
 
     setLoading(true);
-    const apiUrl = import.meta.env.VITE_API_URL || '';
     const cityName = user.village || 'Sangli';
 
     const fetchWeather = async () => {
       try {
-        const weatherRes = await fetch(`${apiUrl}/api/weather/${cityName}`, {
+        const weatherRes = await fetch(`${API_URL}/api/weather/${cityName}`, {
           headers: { 'Authorization': `Bearer ${user.token}` }
         });
         const result = await weatherRes.json();
@@ -104,7 +103,7 @@ export default function UserDashboard() {
 
     const fetchAlerts = async () => {
       try {
-        const alertsRes = await fetch(`${apiUrl}/api/alerts`, {
+        const alertsRes = await fetch(`${API_URL}/api/alerts`, {
           headers: { 'Authorization': `Bearer ${user.token}` }
         });
         const alertsData = await alertsRes.json();
@@ -141,7 +140,7 @@ export default function UserDashboard() {
     e.preventDefault();
     if (!chatMsg.trim()) return;
     
-    const res = await fetch('/api/chat', {
+    const res = await fetch(`${API_URL}/api/chat`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
