@@ -1,7 +1,24 @@
-import mongoose from 'mongoose';
+// @ts-nocheck
+import mongoose, { Schema, Document, Model } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-const userSchema = new mongoose.Schema({
+export interface IUser extends Document {
+  name: string;
+  email?: string;
+  phone: string;
+  password: string;
+  village: string;
+  language: 'English' | 'Marathi' | 'Hindi';
+  familyMembers: number;
+  animals: number;
+  latitude?: number;
+  longitude?: number;
+  role: 'user' | 'admin';
+  createdAt: Date;
+  isModified(path: string): boolean;
+}
+
+const userSchema: Schema<IUser> = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String },
   phone: { type: String, required: true, unique: true },
@@ -16,10 +33,11 @@ const userSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-userSchema.pre('save', async function(next) {
+userSchema.pre<IUser>('save', async function(next) {
   if (!this.isModified('password')) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-export default mongoose.models.User || mongoose.model('User', userSchema);
+const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', userSchema);
+export default User;

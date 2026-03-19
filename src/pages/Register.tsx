@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.tsx';
 import { motion } from 'motion/react';
 import { UserPlus, Phone, Lock, User, MapPin, Users, Dog, Languages } from 'lucide-react';
-import { API_URL } from '../config';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -17,7 +16,7 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${API_URL}/api/auth/register`, {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

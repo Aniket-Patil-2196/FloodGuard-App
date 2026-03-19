@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { motion } from 'motion/react';
 import { Bell, AlertCircle, Info, ShieldAlert } from 'lucide-react';
-import { API_URL } from '../config';
 
 export default function AlertsPage() {
   const { user } = useAuth();
@@ -11,7 +10,7 @@ export default function AlertsPage() {
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/alerts`, {
+        const res = await fetch('/api/alerts', {
           headers: { 'Authorization': `Bearer ${user.token}` }
         });
         const data = await res.json();

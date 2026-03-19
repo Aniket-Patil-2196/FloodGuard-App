@@ -4,7 +4,6 @@ import { Send, Bot, User, ShieldAlert, Info, MapPin, ArrowLeft, Mic, MicOff } fr
 import { useAuth } from '../context/AuthContext';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
-import { API_URL } from '../config';
 
 interface Message {
   id: string;
@@ -80,7 +79,7 @@ export default function ChatPage() {
         parts: [{ text: m.text }]
       }));
 
-      const response = await fetch(`${API_URL}/api/chat`, {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

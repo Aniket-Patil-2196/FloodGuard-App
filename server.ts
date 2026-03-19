@@ -3,7 +3,6 @@ dotenv.config();
 
 import express from "express";
 import path from "path";
-
 import { createServer as createViteServer } from "vite";
 import cors from "cors";
 import cron from "node-cron";
@@ -35,11 +34,7 @@ async function startServer() {
   const app = express();
   const PORT = process.env.PORT || 5000;
 
-  const corsOptions = {
-    origin: process.env.FRONTEND_URL || "*",
-    credentials: true,
-  };
-  app.use(cors(corsOptions));
+  app.use(cors());
   app.use(express.json());
 
   // API routes
@@ -82,14 +77,14 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
+    const distPath = __dirname;
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
-      res.sendFile(path.resolve(distPath, "index.html"));
+      res.sendFile(path.join(distPath, "index.html"));
     });
   }
 
-  app.listen(Number(PORT), "0.0.0.0", () => {
+  app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
 }
