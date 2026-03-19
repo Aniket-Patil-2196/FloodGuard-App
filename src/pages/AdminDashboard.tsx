@@ -5,7 +5,7 @@ import { Users, Bell, CloudRain, Activity, Send, Play, Loader2 } from 'lucide-re
 
 export default function AdminDashboard() {
   const { user } = useAuth();
-  const apiUrl = import.meta.env.VITE_API_URL || '';
+  const apiUrl = import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com';
   const [users, setUsers] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [predictions, setPredictions] = useState([]);

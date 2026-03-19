@@ -42,7 +42,7 @@ export default function UserDashboard() {
   };
 
   const fetchNews = useCallback(async () => {
-    const apiUrl = import.meta.env.VITE_API_URL || '';
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com';
     const cityName = user.village || 'Sangli';
     
     try {
@@ -84,7 +84,7 @@ export default function UserDashboard() {
     }
 
     setLoading(true);
-    const apiUrl = import.meta.env.VITE_API_URL || '';
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com';
     const cityName = user.village || 'Sangli';
 
     const fetchWeather = async () => {
@@ -141,7 +141,7 @@ export default function UserDashboard() {
     e.preventDefault();
     if (!chatMsg.trim()) return;
     
-    const apiUrl = import.meta.env.VITE_API_URL || '';
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com';
     const res = await fetch(`${apiUrl}/api/chat`, {
       method: 'POST',
       headers: { 

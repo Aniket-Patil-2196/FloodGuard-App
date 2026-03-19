@@ -79,7 +79,7 @@ export default function ChatPage() {
         parts: [{ text: m.text }]
       }));
 
-      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com';
       const response = await fetch(`${apiUrl}/api/chat`, {
         method: 'POST',
         headers: {

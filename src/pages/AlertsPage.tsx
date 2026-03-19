@@ -9,7 +9,7 @@ export default function AlertsPage() {
 
   useEffect(() => {
     const fetchAlerts = async () => {
-      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com';
       try {
         const res = await fetch(`${apiUrl}/api/alerts`, {
           headers: { 'Authorization': `Bearer ${user.token}` }
