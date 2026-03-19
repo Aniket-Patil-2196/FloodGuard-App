@@ -67,12 +67,12 @@ export default function FloodMap() {
       </MapContainer>
 
       {/* Legend */}
-      <div className="absolute bottom-10 left-10 z-[1000] bg-slate-900/90 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-sm space-y-2">
-        <h4 className="font-bold mb-2">Risk Legend</h4>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-emerald-500" /> Safe / Low</div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-yellow-500" /> Moderate</div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-orange-500" /> High Risk</div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-red-500" /> Critical / SOS</div>
+      <div className="absolute bottom-4 left-4 sm:bottom-10 sm:left-10 z-[1000] bg-slate-900/90 backdrop-blur-md p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/10 text-[10px] sm:text-sm space-y-1.5 sm:space-y-2 max-w-[150px] sm:max-w-none">
+        <h4 className="font-bold mb-1 sm:mb-2 text-xs sm:text-base">Risk Legend</h4>
+        <div className="flex items-center gap-2"><div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-emerald-500" /> Safe / Low</div>
+        <div className="flex items-center gap-2"><div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-yellow-500" /> Moderate</div>
+        <div className="flex items-center gap-2"><div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-orange-500" /> High Risk</div>
+        <div className="flex items-center gap-2"><div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-red-500" /> Critical / SOS</div>
       </div>
     </div>
   );

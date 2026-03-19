@@ -97,15 +97,15 @@ export default function AdminDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10 space-y-10">
-      <header className="flex justify-between items-end">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-orange-400">Admin Control Center</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-orange-400">Admin Control Center</h1>
           <p className="text-slate-400">Manage users, trigger AI predictions, and broadcast emergency alerts.</p>
         </div>
         <button 
           onClick={handleTestSMS}
           disabled={loadingSMS}
-          className="px-6 py-3 bg-slate-800 hover:bg-slate-700 border border-white/10 rounded-xl text-sm font-bold transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full sm:w-auto px-6 py-3 bg-slate-800 hover:bg-slate-700 border border-white/10 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loadingSMS ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           {loadingSMS ? 'Sending...' : 'Test My SMS'}
@@ -113,7 +113,7 @@ export default function AdminDashboard() {
       </header>
 
       {/* Quick Stats */}
-      <div className="grid md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
         <StatCard icon={<Users className="text-blue-400" />} label="Total Users" value={users.length} />
         <StatCard icon={<Bell className="text-red-400" />} label="Active Alerts" value={alerts.length} />
         <StatCard icon={<CloudRain className="text-cyan-400" />} label="Rainfall (Avg)" value="12 mm" />
@@ -189,8 +189,8 @@ export default function AdminDashboard() {
             <Play className="w-6 h-6 text-emerald-400" />
             Trigger AI Prediction
           </h3>
-          <form onSubmit={handleTriggerPrediction} className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
+          <form onSubmit={handleTriggerPrediction} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
               <label className="block text-sm text-slate-400 mb-1">Village</label>
               <input value={predForm.village} onChange={(e) => setPredForm({...predForm, village: e.target.value})} className="w-full bg-slate-800 border border-white/5 rounded-xl py-3 px-4" required />
             </div>
@@ -205,7 +205,7 @@ export default function AdminDashboard() {
             <button 
               type="submit" 
               disabled={loadingPred}
-              className="col-span-2 bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-xl font-bold transition-all mt-4 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="sm:col-span-2 bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-xl font-bold transition-all mt-4 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loadingPred ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
               {loadingPred ? 'Analyzing...' : 'Run AI Analysis'}
@@ -215,11 +215,11 @@ export default function AdminDashboard() {
       </div>
 
       {/* User Table */}
-      <div className="grid lg:grid-cols-2 gap-10">
-        <div className="p-8 rounded-3xl bg-slate-900 border border-white/10 overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <div className="p-6 sm:p-8 rounded-3xl bg-slate-900 border border-white/10 overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300">
           <h3 className="text-2xl font-bold mb-6">Registered Users</h3>
-          <div className="max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
-            <table className="w-full text-left">
+          <div className="max-h-[350px] overflow-auto pr-2 custom-scrollbar">
+            <table className="w-full text-left min-w-[500px]">
               <thead>
                 <tr className="border-b border-white/5 text-slate-500 text-sm">
                   <th className="pb-4">Name</th>

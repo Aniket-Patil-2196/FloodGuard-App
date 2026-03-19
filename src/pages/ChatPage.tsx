@@ -134,13 +134,13 @@ export default function ChatPage() {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-2 bg-slate-800 p-1 rounded-xl border border-white/5">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1 sm:gap-2 bg-slate-800 p-1 rounded-xl border border-white/5 overflow-x-auto no-scrollbar max-w-[120px] sm:max-w-none">
             {['English', 'Hindi', 'Marathi'].map((lang) => (
               <button
                 key={lang}
                 onClick={() => setLanguage(lang)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${language === lang ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${language === lang ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
               >
                 {lang}
               </button>

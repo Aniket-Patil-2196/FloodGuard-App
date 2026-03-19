@@ -191,7 +191,7 @@ export default function UserDashboard() {
       </header>
 
       {/* Stats Grid */}
-      <div className="grid md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-10">
         {loading ? (
           <>
             <Skeleton className="h-32" />
@@ -255,7 +255,7 @@ export default function UserDashboard() {
               </div>
             </div>
 
-            <div className="analysis-card">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <div className="p-5 bg-slate-800/40 rounded-2xl border border-white/5 hover:bg-slate-800/60 transition-colors">
                 <p className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2">Location</p>
                 <p className="text-lg font-bold text-slate-200">{weather?.name || 'Sangli, Maharashtra'}</p>
@@ -476,16 +476,16 @@ export default function UserDashboard() {
 
 function StatCard({ icon, label, value, desc }) {
   return (
-    <div className="p-8 rounded-[2rem] bg-slate-900 border border-white/10 shadow-lg hover:bg-slate-800/80 transition-all group">
-      <div className="flex items-center gap-6 mb-6">
-        <div className="p-4 bg-slate-800 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-inner">{icon}</div>
+    <div className="p-6 sm:p-8 rounded-[2rem] bg-slate-900 border border-white/10 shadow-lg hover:bg-slate-800/80 transition-all group">
+      <div className="flex items-center gap-4 sm:gap-6 mb-6">
+        <div className="p-3 sm:p-4 bg-slate-800 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-inner">{icon}</div>
         <div>
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">{label}</p>
-          <p className="text-3xl font-bold text-white tracking-tight">{value}</p>
+          <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">{label}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{value}</p>
         </div>
       </div>
       <div className="flex items-center justify-between">
-        <p className="text-xs text-slate-500 font-medium">{desc}</p>
+        <p className="text-[10px] sm:text-xs text-slate-500 font-medium">{desc}</p>
         <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
       </div>
     </div>
