@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { motion } from 'motion/react';
 import { Bell, AlertCircle, Info, ShieldAlert } from 'lucide-react';
-import { API_URL } from '../config';
 
 export default function AlertsPage() {
   const { user } = useAuth();
@@ -11,21 +10,13 @@ export default function AlertsPage() {
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/alerts`, {
+        const res = await fetch('/api/alerts', {
           headers: { 'Authorization': `Bearer ${user.token}` }
         });
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data)) {
-            setAlerts(data);
-          } else {
-            console.error('Alerts data is not an array:', data);
-          }
-        } else {
-          console.error('Failed to fetch alerts:', await res.text());
-        }
+        const data = await res.json();
+        setAlerts(data);
       } catch (err) {
-        console.error('Error fetching alerts:', err);
+        console.error(err);
       }
     };
     fetchAlerts();
@@ -41,7 +32,7 @@ export default function AlertsPage() {
       </header>
 
       <div className="space-y-8">
-        {Array.isArray(alerts) && alerts.length > 0 ? alerts.map((alert, idx) => (
+        {alerts.length > 0 ? alerts.map((alert, idx) => (
           <motion.div 
             key={alert._id}
             initial={{ opacity: 0, y: 20 }}

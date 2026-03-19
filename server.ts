@@ -3,20 +3,20 @@ dotenv.config();
 
 import express from "express";
 import path from "path";
+import { createServer as createViteServer } from "vite";
 import cors from "cors";
 import cron from "node-cron";
 import axios from "axios";
 
-import connectDB from "./config/db";
-import authRoutes from "./routes/authRoutes";
-import userRoutes from "./routes/userRoutes";
-import alertRoutes from "./routes/alertRoutes";
-import weatherRoutes from "./routes/weatherRoutes";
-import predictionRoutes from "./routes/predictionRoutes";
-import chatbotRoutes from "./routes/chatbotRoutes";
+import connectDB from "./backend/config/db";
+import authRoutes from "./backend/routes/authRoutes";
+import alertRoutes from "./backend/routes/alertRoutes";
+import weatherRoutes from "./backend/routes/weatherRoutes";
+import predictionRoutes from "./backend/routes/predictionRoutes";
+import chatbotRoutes from "./backend/routes/chatbotRoutes";
 
-import { fetchRainfallData } from "./services/weatherService";
-import { predictFlood } from "./services/predictionService";
+import { fetchRainfallData } from "./backend/services/weatherService";
+import { predictFlood } from "./backend/services/predictionService";
 
 async function startServer() {
   // Validate critical environment variables
@@ -28,49 +28,24 @@ async function startServer() {
     console.error('Please check your .env file.');
     process.exit(1);
   }
-  console.log('JWT_SECRET length:', process.env.JWT_SECRET?.length);
 
   await connectDB();
 
   const app = express();
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT || 5000;
 
-  const corsOptions = {
-    origin: process.env.FRONTEND_URL || "*",
-    credentials: true,
-  };
-  app.use(cors(corsOptions));
+  app.use(cors());
   app.use(express.json());
 
   // API routes
   app.use("/api/auth", authRoutes);
-  app.use("/api/user", userRoutes);
   app.use("/api/alerts", alertRoutes);
   app.use("/api/weather", weatherRoutes);
   app.use("/api/predictions", predictionRoutes);
   app.use("/api/chat", chatbotRoutes);
 
-  // Health Check Route
   app.get("/api/health", (req, res) => {
-    res.json({ 
-      status: "ok", 
-      message: "Flood Prediction API is healthy",
-      timestamp: new Date().toISOString()
-    });
-  });
-
-  // Serve Static Frontend Files
-  const frontendPath = path.resolve(__dirname, "../frontend/dist");
-  app.use(express.static(frontendPath));
-
-  // Root Route & SPA Fallback
-  app.get("*", (req, res) => {
-    // If it's an API route that wasn't caught above, return 404
-    if (req.path.startsWith("/api")) {
-      return res.status(404).json({ error: "API route not found" });
-    }
-    // Otherwise serve the React app
-    res.sendFile(path.join(frontendPath, "index.html"));
+    res.json({ status: "ok", database: "floodDB" });
   });
 
   // Auto Flood Prediction Every 10 Minutes
@@ -94,7 +69,22 @@ async function startServer() {
     }
   });
 
-  app.listen(Number(PORT), "0.0.0.0", () => {
+  // Vite middleware for development
+  if (process.env.NODE_ENV !== "production") {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "spa",
+    });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = __dirname;
+    app.use(express.static(distPath));
+    app.get("*", (req, res) => {
+      res.sendFile(path.join(distPath, "index.html"));
+    });
+  }
+
+  app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
 }

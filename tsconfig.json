@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "rootDir": ".",
+    "esModuleInterop": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "jsx": "react-jsx"
+  },
+  "include": ["server.ts", "backend/**/*"],
+  "exclude": ["node_modules", "dist", "src"]
+}

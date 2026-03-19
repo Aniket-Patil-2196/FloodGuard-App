@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.tsx';
+import { motion } from 'motion/react';
 import { Users, Bell, CloudRain, Activity, Send, Play, Loader2 } from 'lucide-react';
-import { API_URL } from '../config';
 
 export default function AdminDashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [users, setUsers] = useState([]);
   const [alerts, setAlerts] = useState([]);
+  const [predictions, setPredictions] = useState([]);
   const [alertForm, setAlertForm] = useState({ village: '', riskLevel: 'HIGH', message: '', broadcastToAll: false });
   const [predForm, setPredForm] = useState({ village: '', rainfall: 50, river_level: 5, elevation: 550, soil_moisture: 40, slope: 2 });
   const [loadingAlert, setLoadingAlert] = useState(false);
@@ -16,71 +17,26 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const usersRes = await fetch(`${API_URL}/api/auth/users`, { headers: { 'Authorization': `Bearer ${user.token}` } });
-        
-        if (usersRes.status === 401) {
-          logout();
-          return;
-        }
+        const usersRes = await fetch('/api/auth/users', { headers: { 'Authorization': `Bearer ${user.token}` } });
+        setUsers(await usersRes.json());
 
-        if (usersRes.ok) {
-          const usersData = await usersRes.json();
-          if (Array.isArray(usersData)) {
-            setUsers(usersData);
-          } else {
-            console.error('Users data is not an array:', usersData);
-          }
-        } else {
-          console.error('Failed to fetch users:', await usersRes.text());
-        }
+        const alertsRes = await fetch('/api/alerts', { headers: { 'Authorization': `Bearer ${user.token}` } });
+        setAlerts(await alertsRes.json());
 
-        const alertsRes = await fetch(`${API_URL}/api/alerts`, { headers: { 'Authorization': `Bearer ${user.token}` } });
-        
-        if (alertsRes.status === 401) {
-          logout();
-          return;
-        }
-
-        if (alertsRes.ok) {
-          const alertsData = await alertsRes.json();
-          if (Array.isArray(alertsData)) {
-            setAlerts(alertsData);
-          } else {
-            console.error('Alerts data is not an array:', alertsData);
-          }
-        } else {
-          console.error('Failed to fetch alerts:', await alertsRes.text());
-        }
-
-        const predRes = await fetch(`${API_URL}/api/predictions`, { headers: { 'Authorization': `Bearer ${user.token}` } });
-        
-        if (predRes.status === 401) {
-          logout();
-          return;
-        }
-
-        if (predRes.ok) {
-          const predData = await predRes.json();
-          if (Array.isArray(predData)) {
-            setPredictions(predData);
-          } else {
-            console.error('Predictions data is not an array:', predData);
-          }
-        } else {
-          console.error('Failed to fetch predictions:', await predRes.text());
-        }
+        const predRes = await fetch('/api/predictions', { headers: { 'Authorization': `Bearer ${user.token}` } });
+        setPredictions(await predRes.json());
       } catch (err) {
-        console.error('Error fetching admin data:', err);
+        console.error(err);
       }
     };
     fetchData();
-  }, [user, logout]);
+  }, [user]);
 
   const handleSendAlert = async (e) => {
     e.preventDefault();
     setLoadingAlert(true);
     try {
-      const res = await fetch(`${API_URL}/api/alerts/send`, {
+      const res = await fetch('/api/alerts/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user.token}` },
         body: JSON.stringify(alertForm)
@@ -89,7 +45,7 @@ export default function AdminDashboard() {
         alert('Alert sent successfully!');
         setAlertForm({ village: '', riskLevel: 'HIGH', message: '', broadcastToAll: false });
         // Refresh alerts
-        const alertsRes = await fetch(`${API_URL}/api/alerts`, { headers: { 'Authorization': `Bearer ${user.token}` } });
+        const alertsRes = await fetch('/api/alerts', { headers: { 'Authorization': `Bearer ${user.token}` } });
         setAlerts(await alertsRes.json());
       }
     } catch (err) {
@@ -103,7 +59,7 @@ export default function AdminDashboard() {
     e.preventDefault();
     setLoadingPred(true);
     try {
-      const res = await fetch(`${API_URL}/api/predictions/trigger`, {
+      const res = await fetch('/api/predictions/trigger', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user.token}` },
         body: JSON.stringify(predForm)
@@ -122,7 +78,7 @@ export default function AdminDashboard() {
   const handleTestSMS = async () => {
     setLoadingSMS(true);
     try {
-      const res = await fetch(`${API_URL}/api/alerts/test-sms`, {
+      const res = await fetch('/api/alerts/test-sms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user.token}` },
         body: JSON.stringify({ phone: user.phone })
@@ -273,7 +229,7 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {Array.isArray(users) && users.map(u => (
+                {users.map(u => (
                   <tr key={u._id} className="text-sm">
                     <td className="py-4 font-medium">{u.name}</td>
                     <td className="py-4 text-slate-400">{u.phone}</td>
@@ -293,7 +249,7 @@ export default function AdminDashboard() {
         <div className="p-8 rounded-3xl bg-slate-900 border border-white/10 overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300">
           <h3 className="text-2xl font-bold mb-6">Alert History</h3>
           <div className="max-h-[350px] overflow-y-auto pr-2 space-y-4 custom-scrollbar">
-            {Array.isArray(alerts) && alerts.map(a => (
+            {alerts.map(a => (
               <div 
                 key={a._id} 
                 className="p-5 rounded-xl bg-slate-800 border border-white/5 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
