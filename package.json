@@ -7,8 +7,8 @@
   },
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "vite build",
-    "start": "ts-node server.ts",
+    "build": "tsc && vite build",
+    "start": "node dist/server.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -55,7 +55,6 @@
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
     "tailwindcss": "^4.1.14",
-    "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.24.0"

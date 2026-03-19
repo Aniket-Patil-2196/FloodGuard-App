@@ -2,9 +2,10 @@
   "compilerOptions": {
     "target": "ES6",
     "module": "commonjs",
+    "outDir": "./dist",
     "rootDir": ".",
     "esModuleInterop": true,
-    "strict": true,
+    "strict": false,
     "skipLibCheck": true
   },
   "include": ["server.ts", "backend/**/*"],
