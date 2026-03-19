@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
   phone: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   village: { type: String, required: true },
+  city: { type: String, required: true },
   language: { type: String, enum: ['English', 'Marathi', 'Hindi'], default: 'English' },
   familyMembers: { type: Number, default: 0 },
   animals: { type: Number, default: 0 },

@@ -11,6 +11,7 @@ import axios from "axios";
 
 import connectDB from "./backend/config/db";
 import authRoutes from "./backend/routes/authRoutes";
+import userRoutes from "./backend/routes/userRoutes";
 import alertRoutes from "./backend/routes/alertRoutes";
 import weatherRoutes from "./backend/routes/weatherRoutes";
 import predictionRoutes from "./backend/routes/predictionRoutes";
@@ -44,6 +45,7 @@ async function startServer() {
 
   // API routes
   app.use("/api/auth", authRoutes);
+  app.use("/api/user", userRoutes);
   app.use("/api/alerts", alertRoutes);
   app.use("/api/weather", weatherRoutes);
   app.use("/api/predictions", predictionRoutes);
