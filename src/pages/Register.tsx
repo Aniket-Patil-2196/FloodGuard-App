@@ -7,7 +7,7 @@ import { API_URL } from '../config';
 
 export default function Register() {
   const [formData, setFormData] = useState({
-    name: '', email: '', phone: '', password: '', village: '', language: 'English',
+    name: '', email: '', phone: '', password: '', village: '', city: '', language: 'English',
     familyMembers: 0, animals: 0, latitude: 0, longitude: 0
   });
   const [error, setError] = useState('');
@@ -118,6 +118,19 @@ export default function Register() {
                 <input 
                   name="village" 
                   value={formData.village}
+                  onChange={handleChange} 
+                  className="w-full bg-slate-800 border border-white/5 rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-emerald-500/50" 
+                  required 
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-1">City</label>
+              <div className="relative">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                <input 
+                  name="city" 
+                  value={formData.city}
                   onChange={handleChange} 
                   className="w-full bg-slate-800 border border-white/5 rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-emerald-500/50" 
                   required 

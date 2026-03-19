@@ -19,13 +19,16 @@ export default function AdminDashboard() {
     const fetchData = async () => {
       try {
         const usersRes = await fetch(`${API_URL}/api/auth/users`, { headers: { 'Authorization': `Bearer ${user.token}` } });
-        setUsers(await usersRes.json());
+        const usersData = await usersRes.json();
+        setUsers(Array.isArray(usersData) ? usersData : []);
 
         const alertsRes = await fetch(`${API_URL}/api/alerts`, { headers: { 'Authorization': `Bearer ${user.token}` } });
-        setAlerts(await alertsRes.json());
+        const alertsData = await alertsRes.json();
+        setAlerts(Array.isArray(alertsData) ? alertsData : []);
 
         const predRes = await fetch(`${API_URL}/api/predictions`, { headers: { 'Authorization': `Bearer ${user.token}` } });
-        setPredictions(await predRes.json());
+        const predData = await predRes.json();
+        setPredictions(Array.isArray(predData) ? predData : []);
       } catch (err) {
         console.error(err);
       }
@@ -47,7 +50,8 @@ export default function AdminDashboard() {
         setAlertForm({ village: '', riskLevel: 'HIGH', message: '', broadcastToAll: false });
         // Refresh alerts
         const alertsRes = await fetch(`${API_URL}/api/alerts`, { headers: { 'Authorization': `Bearer ${user.token}` } });
-        setAlerts(await alertsRes.json());
+        const alertsData = await alertsRes.json();
+        setAlerts(Array.isArray(alertsData) ? alertsData : []);
       }
     } catch (err) {
       console.error(err);

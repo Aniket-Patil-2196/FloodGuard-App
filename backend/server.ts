@@ -2,25 +2,18 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-import { createServer as createViteServer } from "vite";
 import cors from "cors";
 import cron from "node-cron";
-import axios from "axios";
+import connectDB from "./config/db";
+import authRoutes from "./routes/authRoutes";
+import userRoutes from "./routes/userRoutes";
+import alertRoutes from "./routes/alertRoutes";
+import weatherRoutes from "./routes/weatherRoutes";
+import predictionRoutes from "./routes/predictionRoutes";
+import chatbotRoutes from "./routes/chatbotRoutes";
 
-import connectDB from "./backend/config/db";
-import authRoutes from "./backend/routes/authRoutes";
-import alertRoutes from "./backend/routes/alertRoutes";
-import weatherRoutes from "./backend/routes/weatherRoutes";
-import predictionRoutes from "./backend/routes/predictionRoutes";
-import chatbotRoutes from "./backend/routes/chatbotRoutes";
-
-import { fetchRainfallData } from "./backend/services/weatherService";
-import { predictFlood } from "./backend/services/predictionService";
+import { fetchRainfallData } from "./services/weatherService";
+import { predictFlood } from "./services/predictionService";
 
 async function startServer() {
   // Validate critical environment variables
@@ -36,7 +29,7 @@ async function startServer() {
   await connectDB();
 
   const app = express();
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT || 5000;
 
   const corsOptions = {
     origin: process.env.FRONTEND_URL || "*",
@@ -47,6 +40,7 @@ async function startServer() {
 
   // API routes
   app.use("/api/auth", authRoutes);
+  app.use("/api/user", userRoutes);
   app.use("/api/alerts", alertRoutes);
   app.use("/api/weather", weatherRoutes);
   app.use("/api/predictions", predictionRoutes);
@@ -76,21 +70,6 @@ async function startServer() {
       console.error("Scheduled prediction failed:", (error as Error).message);
     }
   });
-
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = __dirname;
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.resolve(distPath, "index.html"));
-    });
-  }
 
   app.listen(Number(PORT), "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
