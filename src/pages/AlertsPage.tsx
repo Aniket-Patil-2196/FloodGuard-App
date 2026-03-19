@@ -15,7 +15,7 @@ export default function AlertsPage() {
           headers: { 'Authorization': `Bearer ${user.token}` }
         });
         const data = await res.json();
-        setAlerts(Array.isArray(data) ? data : []);
+        setAlerts(data);
       } catch (err) {
         console.error(err);
       }
