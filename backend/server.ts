@@ -58,13 +58,18 @@ async function startServer() {
     });
   });
 
-  // Root Route
-  app.get("/", (req, res) => {
-    res.json({ 
-      message: "Flood Prediction API is running successfully",
-      version: "1.0.0",
-      docs: "/api/health"
-    });
+  // Serve Static Frontend Files
+  const frontendPath = path.resolve(__dirname, "../frontend/dist");
+  app.use(express.static(frontendPath));
+
+  // Root Route & SPA Fallback
+  app.get("*", (req, res) => {
+    // If it's an API route that wasn't caught above, return 404
+    if (req.path.startsWith("/api")) {
+      return res.status(404).json({ error: "API route not found" });
+    }
+    // Otherwise serve the React app
+    res.sendFile(path.join(frontendPath, "index.html"));
   });
 
   // Auto Flood Prediction Every 10 Minutes
