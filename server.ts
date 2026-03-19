@@ -3,10 +3,7 @@ dotenv.config();
 
 import express from "express";
 import path from "path";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 import { createServer as createViteServer } from "vite";
 import cors from "cors";
 import cron from "node-cron";
@@ -36,7 +33,7 @@ async function startServer() {
   await connectDB();
 
   const app = express();
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT || 5000;
 
   const corsOptions = {
     origin: process.env.FRONTEND_URL || "*",
@@ -85,7 +82,7 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = __dirname;
+    const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
       res.sendFile(path.resolve(distPath, "index.html"));
