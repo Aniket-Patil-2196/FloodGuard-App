@@ -42,24 +42,29 @@ export default function UserDashboard() {
   };
 
   const fetchNews = useCallback(async () => {
-    const apiUrl = (import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com').replace(/\/$/, '');
+    const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com').replace(/\/$/, '');
     const cityName = user.village || 'Sangli';
     
     try {
       setNewsLoading(true);
-      const newsRes = await fetch(`${apiUrl}/api/weather/news?city=${cityName}`, {
-        headers: { 'Authorization': `Bearer ${user.token}` }
+      const newsRes = await fetch(`${API_BASE_URL}/api/weather/news?city=${cityName}`, {
+        headers: { 
+          'Authorization': `Bearer ${user.token}`,
+          'Accept': 'application/json'
+        }
       });
       
-      if (newsRes.ok) {
-        const newsData = await newsRes.json();
-        if (newsData.success && newsData.news) {
-          setNews(newsData.news);
-          setCachedData(CACHE_KEY_NEWS, newsData.news);
-        }
+      if (!newsRes.ok) {
+        throw new Error(`News API responded with status ${newsRes.status}`);
+      }
+
+      const newsData = await newsRes.json();
+      if (newsData.success && newsData.news) {
+        setNews(newsData.news);
+        setCachedData(CACHE_KEY_NEWS, newsData.news);
       }
     } catch (err) {
-      console.error('News fetch error:', err);
+      console.error('FRONTEND_ERROR: News fetch failed:', err);
     } finally {
       setNewsLoading(false);
     }
@@ -84,36 +89,52 @@ export default function UserDashboard() {
     }
 
     setLoading(true);
-    const apiUrl = (import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com').replace(/\/$/, '');
+    const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com').replace(/\/$/, '');
     const cityName = user.village || 'Sangli';
 
     const fetchWeather = async () => {
       try {
-        const weatherRes = await fetch(`${apiUrl}/api/weather/${cityName}`, {
-          headers: { 'Authorization': `Bearer ${user.token}` }
+        const weatherRes = await fetch(`${API_BASE_URL}/api/weather/${cityName}`, {
+          headers: { 
+            'Authorization': `Bearer ${user.token}`,
+            'Accept': 'application/json'
+          }
         });
+
+        if (!weatherRes.ok) {
+          throw new Error(`Weather API responded with status ${weatherRes.status}`);
+        }
+
         const result = await weatherRes.json();
         if (result.success && result.data) {
           setWeather(result.data);
           setCachedData(CACHE_KEY_WEATHER, result.data);
         }
       } catch (err) {
-        console.error('Weather fetch error:', err);
+        console.error('FRONTEND_ERROR: Weather fetch failed:', err);
       }
     };
 
     const fetchAlerts = async () => {
       try {
-        const alertsRes = await fetch(`${apiUrl}/api/alerts`, {
-          headers: { 'Authorization': `Bearer ${user.token}` }
+        const alertsRes = await fetch(`${API_BASE_URL}/api/alerts`, {
+          headers: { 
+            'Authorization': `Bearer ${user.token}`,
+            'Accept': 'application/json'
+          }
         });
+
+        if (!alertsRes.ok) {
+          throw new Error(`Alerts API responded with status ${alertsRes.status}`);
+        }
+
         const alertsData = await alertsRes.json();
         const alertsArray = Array.isArray(alertsData) ? alertsData : (alertsData.alerts || []);
         const filteredAlerts = alertsArray.filter(a => a.village === user.village || a.village === 'All Villages');
         setAlerts(filteredAlerts);
         setCachedData(CACHE_KEY_ALERTS, filteredAlerts);
       } catch (err) {
-        console.error('Alerts fetch error:', err);
+        console.error('FRONTEND_ERROR: Alerts fetch failed:', err);
       }
     };
 
@@ -141,22 +162,32 @@ export default function UserDashboard() {
     e.preventDefault();
     if (!chatMsg.trim()) return;
     
-    const apiUrl = (import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com').replace(/\/$/, '');
-    const res = await fetch(`${apiUrl}/api/chat`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${user.token}`
-      },
-      body: JSON.stringify({ 
-        message: chatMsg, 
-        language: user.language,
-        location: user.village
-      })
-    });
-    const data = await res.json();
-    setChatReply(data.reply);
-    setChatMsg('');
+    const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com').replace(/\/$/, '');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}`,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ 
+          message: chatMsg, 
+          language: user.language,
+          location: user.village
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error(`Chat API responded with status ${res.status}`);
+      }
+
+      const data = await res.json();
+      setChatReply(data.reply);
+      setChatMsg('');
+    } catch (err) {
+      console.error('FRONTEND_ERROR: Chat request failed:', err);
+    }
   };
 
   const chartData = [
@@ -304,7 +335,7 @@ export default function UserDashboard() {
             <div style={{ width: "100%", height: 320 }}>
               {loading ? (
                 <Skeleton className="w-full h-full" />
-              ) : (
+              ) : weather ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
@@ -317,6 +348,10 @@ export default function UserDashboard() {
                     <Line type="monotone" dataKey="rain" stroke="#10b981" strokeWidth={4} dot={{ r: 6, fill: '#10b981', strokeWidth: 2, stroke: '#0f172a' }} activeDot={{ r: 8, strokeWidth: 0 }} />
                   </LineChart>
                 </ResponsiveContainer>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-slate-500 italic">
+                  No trend data available.
+                </div>
               )}
             </div>
           </div>

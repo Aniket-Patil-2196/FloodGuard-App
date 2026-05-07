@@ -80,12 +80,13 @@ export default function Chatbot() {
         parts: [{ text: m.text }]
       }));
 
-      const apiUrl = (import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com').replace(/\/$/, '');
-      const response = await fetch(`${apiUrl}/api/chat`, {
+      const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com').replace(/\/$/, '');
+      const response = await fetch(`${API_BASE_URL}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${user?.token}`,
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
           message: input,
@@ -94,6 +95,10 @@ export default function Chatbot() {
           location: user?.village || 'Sangli'
         }),
       });
+
+      if (!response.ok) {
+        throw new Error(`Chat API responded with status ${response.status}`);
+      }
 
       const data = await response.json();
       
@@ -106,7 +111,14 @@ export default function Chatbot() {
 
       setMessages((prev) => [...prev, aiMsg]);
     } catch (error) {
-      console.error('Chat error:', error);
+      console.error('FRONTEND_ERROR: Chat request failed:', error);
+      const aiMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "I'm having trouble connecting to the safety server. Please check your network.",
+        sender: 'ai',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiMsg]);
     } finally {
       setIsLoading(false);
     }

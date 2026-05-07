@@ -13,22 +13,27 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const apiUrl = (import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com').replace(/\/$/, '');
+    const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com').replace(/\/$/, '');
     try {
-      const res = await fetch(`${apiUrl}/api/auth/login`, {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({ phone, password })
       });
+      
       const data = await res.json();
       if (res.ok) {
         login(data);
         navigate(data.role === 'admin' ? '/admin' : '/dashboard');
       } else {
-        setError(data.message);
+        setError(data.message || 'Login failed');
       }
     } catch (err) {
-      setError('Connection failed');
+      console.error('FRONTEND_ERROR: Login request failed:', err);
+      setError('Connection failed. Please check your network.');
     }
   };
 

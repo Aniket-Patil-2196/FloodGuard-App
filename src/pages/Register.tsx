@@ -15,22 +15,27 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const apiUrl = (import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com').replace(/\/$/, '');
+    const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com').replace(/\/$/, '');
     try {
-      const res = await fetch(`${apiUrl}/api/auth/register`, {
+      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify(formData)
       });
+      
       const data = await res.json();
       if (res.ok) {
         login(data);
         navigate('/dashboard');
       } else {
-        setError(data.message);
+        setError(data.message || 'Registration failed');
       }
     } catch (err) {
-      setError('Registration failed');
+      console.error('FRONTEND_ERROR: Registration request failed:', err);
+      setError('Connection failed. Please check your network.');
     }
   };
 

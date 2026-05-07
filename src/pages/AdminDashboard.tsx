@@ -5,7 +5,7 @@ import { Users, Bell, CloudRain, Activity, Send, Play, Loader2 } from 'lucide-re
 
 export default function AdminDashboard() {
   const { user } = useAuth();
-  const apiUrl = (import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com').replace(/\/$/, '');
+  const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com').replace(/\/$/, '');
   const [users, setUsers] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [predictions, setPredictions] = useState([]);
@@ -18,39 +18,60 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const usersRes = await fetch(`${apiUrl}/api/auth/users`, { headers: { 'Authorization': `Bearer ${user.token}` } });
-        setUsers(await usersRes.json());
+        const fetchOptions = { 
+          headers: { 
+            'Authorization': `Bearer ${user.token}`,
+            'Accept': 'application/json'
+          } 
+        };
 
-        const alertsRes = await fetch(`${apiUrl}/api/alerts`, { headers: { 'Authorization': `Bearer ${user.token}` } });
-        setAlerts(await alertsRes.json());
+        const [usersRes, alertsRes, predRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/auth/users`, fetchOptions),
+          fetch(`${API_BASE_URL}/api/alerts`, fetchOptions),
+          fetch(`${API_BASE_URL}/api/predictions`, fetchOptions)
+        ]);
 
-        const predRes = await fetch(`${apiUrl}/api/predictions`, { headers: { 'Authorization': `Bearer ${user.token}` } });
-        setPredictions(await predRes.json());
+        if (usersRes.ok) setUsers(await usersRes.json());
+        if (alertsRes.ok) setAlerts(await alertsRes.json());
+        if (predRes.ok) setPredictions(await predRes.json());
       } catch (err) {
-        console.error(err);
+        console.error('FRONTEND_ERROR: Admin data fetch failed:', err);
       }
     };
     fetchData();
-  }, [user]);
+  }, [user, API_BASE_URL]);
 
   const handleSendAlert = async (e) => {
     e.preventDefault();
     setLoadingAlert(true);
     try {
-      const res = await fetch(`${apiUrl}/api/alerts/send`, {
+      const res = await fetch(`${API_BASE_URL}/api/alerts/send`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user.token}` },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${user.token}`,
+          'Accept': 'application/json'
+        },
         body: JSON.stringify(alertForm)
       });
       if (res.ok) {
         alert('Alert sent successfully!');
         setAlertForm({ village: '', riskLevel: 'HIGH', message: '', broadcastToAll: false });
         // Refresh alerts
-        const alertsRes = await fetch(`${apiUrl}/api/alerts`, { headers: { 'Authorization': `Bearer ${user.token}` } });
-        setAlerts(await alertsRes.json());
+        const alertsRes = await fetch(`${API_BASE_URL}/api/alerts`, { 
+          headers: { 
+            'Authorization': `Bearer ${user.token}`,
+            'Accept': 'application/json'
+          } 
+        });
+        if (alertsRes.ok) setAlerts(await alertsRes.json());
+      } else {
+        const errorData = await res.json();
+        alert(`Failed to send alert: ${errorData.message}`);
       }
     } catch (err) {
-      console.error(err);
+      console.error('FRONTEND_ERROR: Send alert failed:', err);
+      alert('Connection error while sending alert.');
     } finally {
       setLoadingAlert(false);
     }
@@ -60,17 +81,25 @@ export default function AdminDashboard() {
     e.preventDefault();
     setLoadingPred(true);
     try {
-      const res = await fetch(`${apiUrl}/api/predictions/trigger`, {
+      const res = await fetch(`${API_BASE_URL}/api/predictions/trigger`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user.token}` },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${user.token}`,
+          'Accept': 'application/json'
+        },
         body: JSON.stringify(predForm)
       });
       if (res.ok) {
         const data = await res.json();
         alert(`Prediction complete! Risk: ${data.riskLevel}`);
+      } else {
+        const errorData = await res.json();
+        alert(`Prediction failed: ${errorData.message}`);
       }
     } catch (err) {
-      console.error(err);
+      console.error('FRONTEND_ERROR: Trigger prediction failed:', err);
+      alert('Connection error while triggering prediction.');
     } finally {
       setLoadingPred(false);
     }
@@ -79,18 +108,24 @@ export default function AdminDashboard() {
   const handleTestSMS = async () => {
     setLoadingSMS(true);
     try {
-      const res = await fetch(`${apiUrl}/api/alerts/test-sms`, {
+      const res = await fetch(`${API_BASE_URL}/api/alerts/test-sms`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user.token}` },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${user.token}`,
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({ phone: user.phone })
       });
       if (res.ok) {
         alert('Test SMS sent to your phone!');
       } else {
-        alert('Failed to send test SMS.');
+        const errorData = await res.json();
+        alert(`Failed to send test SMS: ${errorData.message}`);
       }
     } catch (err) {
-      console.error(err);
+      console.error('FRONTEND_ERROR: Test SMS failed:', err);
+      alert('Connection error while testing SMS.');
     } finally {
       setLoadingSMS(false);
     }

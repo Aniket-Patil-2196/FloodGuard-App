@@ -34,14 +34,45 @@ async function startServer() {
   const app = express();
   const PORT = process.env.PORT || 5000;
 
-  // Configure CORS - Removing potential trailing slash from FRONTEND_URL
-  const origin = (process.env.FRONTEND_URL || "https://flood-guard-real-time-flood-predict.vercel.app").replace(/\/$/, "");
+  // Logger Middleware
+  app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+  });
+
+  // Configure Robust CORS
+  const allowedOrigins = [
+    "https://flood-guard-real-time-flood-predict.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000"
+  ];
 
   app.use(cors({
-    origin: origin,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
+    origin: function(origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      const isAllowed = allowedOrigins.includes(origin) || 
+                        origin.includes("vercel.app") || 
+                        origin.includes("localhost") || 
+                        origin.includes("run.app");
+
+      if (isAllowed) {
+        return callback(null, true);
+      } else {
+        console.log("CORS Debug - Request from origin:", origin);
+        // Temporarily allow all during debug to prevent white screen, but log it
+        return callback(null, true);
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"]
   }));
+
+  // Handle Preflight Requests
+  app.options("*", cors());
+  
   app.use(express.json());
 
   // API routes

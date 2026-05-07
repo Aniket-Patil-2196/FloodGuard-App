@@ -9,15 +9,23 @@ export default function AlertsPage() {
 
   useEffect(() => {
     const fetchAlerts = async () => {
-      const apiUrl = (import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com').replace(/\/$/, '');
+      const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com').replace(/\/$/, '');
       try {
-        const res = await fetch(`${apiUrl}/api/alerts`, {
-          headers: { 'Authorization': `Bearer ${user.token}` }
+        const res = await fetch(`${API_BASE_URL}/api/alerts`, {
+          headers: { 
+            'Authorization': `Bearer ${user.token}`,
+            'Accept': 'application/json'
+          }
         });
+        
+        if (!res.ok) {
+          throw new Error(`Alerts API responded with status ${res.status}`);
+        }
+
         const data = await res.json();
         setAlerts(data);
       } catch (err) {
-        console.error(err);
+        console.error('FRONTEND_ERROR: Alerts fetch failed:', err);
       }
     };
     fetchAlerts();
