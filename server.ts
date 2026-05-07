@@ -25,17 +25,21 @@ async function startServer() {
   
   if (missingEnv.length > 0) {
     console.error(`ERROR: Missing required environment variables: ${missingEnv.join(', ')}`);
-    console.error('Please check your .env file.');
-    process.exit(1);
+    console.error('Please check your App Settings.');
   }
 
-  await connectDB();
+  // Try to connect to DB without blocking the server start
+  connectDB();
 
   const app = express();
   const PORT = process.env.PORT || 5000;
 
+  // Configure CORS - Removing potential trailing slash from FRONTEND_URL
+  const origin = (process.env.FRONTEND_URL || "https://flood-guard-real-time-flood-predict.vercel.app").replace(/\/$/, "");
+
   app.use(cors({
-    origin: process.env.FRONTEND_URL || "https://flood-guard-real-time-flood-predict.vercel.app",
+    origin: origin,
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
   }));
   app.use(express.json());

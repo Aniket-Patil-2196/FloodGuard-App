@@ -80,7 +80,7 @@ export default function Chatbot() {
         parts: [{ text: m.text }]
       }));
 
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com';
+      const apiUrl = (import.meta.env.VITE_API_URL || 'https://floodguard-real-time-flood-prediction.onrender.com').replace(/\/$/, '');
       const response = await fetch(`${apiUrl}/api/chat`, {
         method: 'POST',
         headers: {
