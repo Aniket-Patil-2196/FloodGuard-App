@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.local
+.DS_Store
+MobileApp/node_modules/
+MobileApp/.expo/
+MobileApp/dist/
+ai-service/models/*.joblib
+*.log

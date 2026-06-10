@@ -6,11 +6,13 @@ import User from '../models/User';
 import { sendSMS } from '../services/smsService';
 import { predictFlood } from '../services/predictionService';
 
+import { sendPushNotification } from '../services/expoPushService';
+
 export const triggerPrediction = async (req: Request, res: Response) => {
   const { village, rainfall, river_level, elevation, soil_moisture, slope } = req.body;
 
   try {
-    const predictionData = predictFlood(
+    const predictionData = await predictFlood(
       rainfall, 
       river_level, 
       elevation, 
@@ -39,6 +41,10 @@ export const triggerPrediction = async (req: Request, res: Response) => {
           await sendSMS(user.phone, message);
         } catch (err) {
           console.error(`SOS SMS failed for ${user.phone}`);
+        }
+
+        if (user.expoPushToken) {
+          await sendPushNotification(user.expoPushToken, 'Flood Alert!', message);
         }
       }
     }

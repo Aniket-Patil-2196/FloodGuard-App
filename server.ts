@@ -14,6 +14,7 @@ import alertRoutes from "./backend/routes/alertRoutes";
 import weatherRoutes from "./backend/routes/weatherRoutes";
 import predictionRoutes from "./backend/routes/predictionRoutes";
 import chatbotRoutes from "./backend/routes/chatbotRoutes";
+import mapRoutes from "./backend/routes/mapRoutes";
 
 import { fetchRainfallData } from "./backend/services/weatherService";
 import { predictFlood } from "./backend/services/predictionService";
@@ -27,9 +28,6 @@ async function startServer() {
     console.error(`ERROR: Missing required environment variables: ${missingEnv.join(', ')}`);
     console.error('Please check your App Settings.');
   }
-
-  // Try to connect to DB without blocking the server start
-  connectDB();
 
   const app = express();
   const PORT = process.env.PORT || 5000;
@@ -81,31 +79,35 @@ async function startServer() {
   app.use("/api/weather", weatherRoutes);
   app.use("/api/predictions", predictionRoutes);
   app.use("/api/chat", chatbotRoutes);
+  app.use("/api/map", mapRoutes);
 
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", database: "floodDB" });
   });
 
-  // Auto Flood Prediction Every 10 Minutes
-  cron.schedule("*/10 * * * *", async () => {
-    console.log("Running scheduled flood prediction check...");
-    try {
-      const city = "Sangli"; // Default monitoring city
-      const weather = await fetchRainfallData(city);
-      
-      const predictionData = predictFlood(
-        weather.rainfall,
-        5.0, // Mocked river level
-        550,
-        40,
-        2
-      );
-      
-      console.log("Scheduled prediction result:", predictionData);
-    } catch (error) {
-      console.error("Scheduled prediction failed:", (error as Error).message);
-    }
-  });
+  const startScheduledPredictions = () => {
+    // Auto Flood Prediction Every 10 Minutes
+    cron.schedule("*/10 * * * *", async () => {
+      console.log("Running scheduled flood prediction check...");
+      try {
+        const city = "Sangli"; // Default monitoring city
+        const weather = await fetchRainfallData(city);
+        
+        const predictionData = await predictFlood(
+          weather.rainfall,
+          5.0, // Mocked river level
+          550,
+          40,
+          2
+        );
+        
+        console.log("Scheduled prediction result:", predictionData);
+      } catch (error) {
+        console.error("Scheduled prediction failed:", (error as Error).message);
+      }
+    });
+    console.log("Scheduled prediction job initialized.");
+  };
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
@@ -122,9 +124,20 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+  try {
+    console.log("Connecting to MongoDB...");
+    await connectDB();
+    console.log("MongoDB Connection Initialized Successfully.");
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+      // Start scheduled jobs only after DB connection
+      startScheduledPredictions();
+    });
+  } catch (error) {
+    console.error("MongoDB Connection Failed:", error);
+    process.exit(1);
+  }
 }
 
 startServer();

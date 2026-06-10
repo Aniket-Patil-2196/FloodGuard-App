@@ -14,6 +14,7 @@ export interface IUser extends Document {
   latitude?: number;
   longitude?: number;
   role: 'user' | 'admin';
+  expoPushToken?: string;
   createdAt: Date;
   isModified(path: string): boolean;
 }
@@ -29,6 +30,7 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
   animals: { type: Number, default: 0 },
   latitude: { type: Number },
   longitude: { type: Number },
+  expoPushToken: { type: String },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   createdAt: { type: Date, default: Date.now }
 });

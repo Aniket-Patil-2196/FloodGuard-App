@@ -55,15 +55,29 @@ export const registerUser = async (req: Request, res: Response) => {
 };
 
 export const loginUser = async (req: Request, res: Response) => {
-  const { phone, password } = req.body;
+  const { phone, password, expoPushToken } = req.body;
   try {
     const user: any = await User.findOne({ phone });
     if (user && (await bcrypt.compare(password, user.password))) {
+      
+      // Update push token if provided
+      if (expoPushToken && user.expoPushToken !== expoPushToken) {
+        user.expoPushToken = expoPushToken;
+        await user.save();
+      }
+
       console.log('Login successful for:', phone);
       res.json({
         _id: user._id,
         name: user.name,
+        email: user.email,
         phone: user.phone,
+        village: user.village,
+        language: user.language,
+        familyMembers: user.familyMembers,
+        animals: user.animals,
+        latitude: user.latitude,
+        longitude: user.longitude,
         role: user.role,
         token: generateToken(user._id.toString())
       });

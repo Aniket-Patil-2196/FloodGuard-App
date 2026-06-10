@@ -1,26 +1,33 @@
+import { exec } from 'child_process';
+import path from 'path';
+import util from 'util';
 
-export const predictFlood = (rainfall: number, river_level: number, elevation: number, soil_moisture: number, slope: number) => {
-    // Ported from ai-service/predict.py
-    // Simple heuristic for flood probability
-    // Higher rainfall and river level increase risk
-    // Lower elevation and slope increase risk
+const execPromise = util.promisify(exec);
+
+export const predictFlood = async (rainfall: number, river_level: number, elevation: number, soil_moisture: number, slope: number) => {
+    const inputData = JSON.stringify({ rainfall, river_level, elevation, soil_moisture, slope });
+    // ai-service is at the root, services is inside backend/services
+    const scriptPath = path.join(__dirname, '../../ai-service/predict.py');
     
-    const score = (rainfall * 0.3) + (river_level * 0.4) + (soil_moisture * 0.2) - (elevation * 0.01) - (slope * 0.05);
-    
-    // Normalize score to 0-1 using sigmoid-like function
-    const probability = 1 / (1 + Math.exp(-score / 10));
-    
-    let risk_level = "LOW";
-    if (probability > 0.8) {
-        risk_level = "CRITICAL";
-    } else if (probability > 0.6) {
-        risk_level = "HIGH";
-    } else if (probability > 0.3) {
-        risk_level = "MODERATE";
-    }
+    try {
+        // Use double quotes around the JSON for Windows command line compatibility
+        // Escape inner double quotes
+        const escapedJson = inputData.replace(/"/g, '\\"');
+        const { stdout } = await execPromise(`python "${scriptPath}" "${escapedJson}"`);
         
-    return {
-        flood_probability: probability,
-        risk_level: risk_level
-    };
+        try {
+            const result = JSON.parse(stdout.trim());
+            if (result.error) {
+                console.error("Prediction script error:", result.error);
+                return { flood_probability: 0, risk_level: "LOW" };
+            }
+            return result;
+        } catch (parseError) {
+            console.error("Failed to parse prediction output:", stdout);
+            return { flood_probability: 0, risk_level: "LOW" };
+        }
+    } catch (error) {
+        console.error("Failed to execute prediction script:", error);
+        return { flood_probability: 0, risk_level: "LOW" };
+    }
 };
