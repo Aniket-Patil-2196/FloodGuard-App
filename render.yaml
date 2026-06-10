@@ -1,5 +1,12 @@
 services:
   - type: web
+    name: floodguard-ai-service
+    env: python
+    rootDir: ai-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    
+  - type: web
     name: floodguard-api
     env: node
     buildCommand: npm install && npm run build
@@ -20,4 +27,7 @@ services:
       - key: ADMIN_PHONES
         sync: false
       - key: AI_SERVICE_URL
-        sync: false
+        fromService:
+          type: web
+          name: floodguard-ai-service
+          property: host
