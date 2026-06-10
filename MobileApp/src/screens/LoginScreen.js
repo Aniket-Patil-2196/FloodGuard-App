@@ -22,7 +22,8 @@ export default function LoginScreen({ navigation }) {
       const response = await apiClient.post('/auth/login', { phone, password, expoPushToken });
       await login(response.data);
     } catch (error) {
-      Alert.alert('Login Failed', error.response?.data?.message || 'Something went wrong');
+      const errorMessage = error.response?.data?.message || error.message || 'Something went wrong';
+      Alert.alert('Login Failed', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -37,6 +38,7 @@ export default function LoginScreen({ navigation }) {
         <TextInput
           style={styles.input}
           placeholder="Phone Number"
+          placeholderTextColor="#94a3b8"
           keyboardType="phone-pad"
           value={phone}
           onChangeText={setPhone}
@@ -45,6 +47,7 @@ export default function LoginScreen({ navigation }) {
         <TextInput
           style={styles.input}
           placeholder="Password"
+          placeholderTextColor="#94a3b8"
           secureTextEntry
           value={password}
           onChangeText={setPassword}
@@ -103,6 +106,7 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 16,
     fontSize: 16,
+    color: '#1e293b',
   },
   button: {
     backgroundColor: '#2563eb',

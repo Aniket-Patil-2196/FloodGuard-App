@@ -1,9 +1,10 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Use 'http://10.0.2.2:3000/api' for Android Emulator
-// For physical device, change this to 'http://YOUR_LOCAL_IP:3000/api'
-const API_BASE_URL = 'http://10.195.144.94:3000/api'; 
+const PROD_URL = 'https://floodguard-api.onrender.com/api'; // Render Deployment URL
+const DEV_URL = 'http://10.195.144.94:3000/api'; 
+
+const API_BASE_URL = __DEV__ ? DEV_URL : PROD_URL;
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
