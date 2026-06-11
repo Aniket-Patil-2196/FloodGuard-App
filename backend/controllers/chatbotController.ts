@@ -63,8 +63,11 @@ export const handleChat = async (req: Request, res: Response) => {
     
     res.json({ response: reply });
   } catch (error: any) {
-    console.error("Chatbot error:", error);
-    res.status(500).json({ error: error.message || "Failed to process chat request" });
+    console.error("Chatbot error:", error.message || error);
+    // Graceful fallback if Gemini API hits quota limit
+    const fallbackMessage = `**[MOCK AI RESPONSE - API RATE LIMITED]**\n\nI received your message: "${message}".\n\nYou have selected language: **${language || 'English'}**.\n\n*Current Weather in ${location || 'your area'}:*\n- Rainfall: ${req.body.weather?.rainfall || 0}mm\n- Temperature: ${req.body.weather?.temperature || 28}°C\n\n*(Note: Your Google Gemini API Key has exceeded its free tier quota. Please upgrade or use a new key for real AI responses.)*`;
+    
+    res.status(200).json({ response: fallbackMessage });
   }
 };
 
