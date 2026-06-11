@@ -34,19 +34,18 @@ export const handleChat = async (req: Request, res: Response) => {
       Your goal is to provide accurate, detailed, and real-time flood-related information, safety guidance, and predictions.
       
       CORE RULES:
-      1. Never give repetitive or generic answers.
-      2. Provide structured responses using bullet points or numbered lists where appropriate.
+      1. CRITICAL: You MUST respond entirely in the user's requested language. The requested language is: ${language || 'English'}. Do NOT mix languages. Do NOT respond in English unless requested.
+      2. FORMATTING: You MUST use Markdown formatting for all your responses.
+         - Use headings (##, ###) for sections.
+         - Use bullet points (*) or numbered lists (1., 2.) for steps.
+         - Use **bold** text to emphasize risk levels and critical alerts.
       3. If the user is in an emergency, prioritize immediate safety instructions (e.g., "Move to higher ground", "Disconnect power").
       4. Use the provided real-time context (weather and news) to give specific insights.
-      5. Support English, Hindi, and Marathi. Detect the user's language automatically and respond in that language unless asked otherwise.
-      6. Maintain a professional yet helpful tone.
-      7. If unsure about a prediction, say "Based on current data..." and explain the uncertainty.
-      8. For risk analysis, use these levels: LOW, MODERATE, HIGH, CRITICAL. Explain WHY.
+      5. Maintain a professional yet helpful tone.
+      6. For risk analysis, use these levels: **LOW**, **MODERATE**, **HIGH**, **CRITICAL**. Explain WHY.
       
       CONTEXT:
       ${context}
-      
-      USER LANGUAGE: ${language || 'Auto-detect'}
     `;
 
     const chat = ai.chats.create({

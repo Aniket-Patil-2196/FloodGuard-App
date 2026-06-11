@@ -88,7 +88,64 @@ export const uploadKml = async (req: Request, res: Response) => {
 export const getMapData = async (req: Request, res: Response) => {
   try {
     const data = await MapData.find({});
-    res.json(data);
+    
+    // Inject mock presentation data for visual richness
+    const mockData = [
+      {
+        _id: 'mock_poly_1',
+        type: 'Polygon',
+        name: 'High Risk Zone - Sangli',
+        color: '#f97316', // Orange
+        coordinates: [
+          { latitude: 16.855, longitude: 74.580 },
+          { latitude: 16.865, longitude: 74.580 },
+          { latitude: 16.865, longitude: 74.595 },
+          { latitude: 16.855, longitude: 74.595 }
+        ]
+      },
+      {
+        _id: 'mock_poly_2',
+        type: 'Polygon',
+        name: 'Severe Risk Zone - Krishna Riverbed',
+        color: '#dc2626', // Red
+        coordinates: [
+          { latitude: 16.840, longitude: 74.570 },
+          { latitude: 16.850, longitude: 74.575 },
+          { latitude: 16.850, longitude: 74.585 },
+          { latitude: 16.840, longitude: 74.585 }
+        ]
+      },
+      {
+        _id: 'mock_poly_3',
+        type: 'Polygon',
+        name: 'Safe Zone - Highland Shelter',
+        color: '#10b981', // Green
+        coordinates: [
+          { latitude: 16.870, longitude: 74.600 },
+          { latitude: 16.880, longitude: 74.600 },
+          { latitude: 16.880, longitude: 74.615 },
+          { latitude: 16.870, longitude: 74.615 }
+        ]
+      },
+      {
+        _id: 'mock_pt_1',
+        type: 'Point',
+        name: 'Alert: Bridge Submerged',
+        description: 'Irwin Bridge is currently underwater. Avoid travel.',
+        color: '#dc2626',
+        coordinates: { latitude: 16.852, longitude: 74.582 }
+      },
+      {
+        _id: 'mock_pt_2',
+        type: 'Point',
+        name: 'Shelter: Municipal School',
+        description: 'Capacity: 500 people. Currently open.',
+        color: '#10b981',
+        coordinates: { latitude: 16.875, longitude: 74.605 }
+      }
+    ];
+
+    res.json([...data, ...mockData]);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch map data' });
   }
