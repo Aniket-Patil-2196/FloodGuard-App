@@ -13,7 +13,7 @@ export const handleChat = async (req: Request, res: Response) => {
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    const model = "gemini-3-flash-preview";
+    const model = "gemini-1.5-flash";
 
     // Fetch real-time context
     const weather = await fetchRainfallData(location || 'Mumbai');
@@ -89,7 +89,7 @@ export const analyzeRisk = async (req: Request, res: Response) => {
     `;
 
     const result = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-1.5-flash",
       contents: prompt,
       config: { responseMimeType: "application/json" }
     });
