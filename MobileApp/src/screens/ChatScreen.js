@@ -173,7 +173,7 @@ const markdownStyles = StyleSheet.create({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
   header: {
-    backgroundColor: '#ffffff', paddingVertical: 12, paddingHorizontal: 20,
+    backgroundColor: '#ffffff', paddingTop: 45, paddingBottom: 12, paddingHorizontal: 20,
     borderBottomWidth: 1, borderBottomColor: '#e2e8f0',
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     elevation: 2,
