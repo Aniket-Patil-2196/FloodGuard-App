@@ -53,6 +53,14 @@ export const fetchRainfallData = async (city: string) => {
     };
   } catch (error) {
     console.error(`Weather API error for ${city}: ${(error as Error).message}`);
-    throw error;
+    // Fallback to mock data so the app doesn't crash
+    return {
+      success: false,
+      city,
+      rainfall: 0,
+      temperature: 28,
+      humidity: 70,
+      condition: "Unknown (API Error)"
+    };
   }
 };

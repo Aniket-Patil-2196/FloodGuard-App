@@ -60,9 +60,9 @@ export const handleChat = async (req: Request, res: Response) => {
     const reply = result.text || "I'm sorry, I couldn't process that request.";
     
     res.json({ response: reply });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Chatbot error:", error);
-    res.status(500).json({ error: "Failed to process chat request" });
+    res.status(500).json({ error: error.message || "Failed to process chat request" });
   }
 };
 
