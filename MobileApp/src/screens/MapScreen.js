@@ -1,22 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
-import { WebView } from 'react-native-webview';
+import MapView, { Marker, Polyline, Polygon, UrlTile } from 'react-native-maps';
 import apiClient from '../api/apiClient';
 
 export default function MapScreen() {
   const [mapData, setMapData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const webViewRef = useRef(null);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   useEffect(() => {
     const fetchMapData = async () => {
       try {
         const response = await apiClient.get('/map/data');
         setMapData(response.data);
+        console.log('Map data loaded:', response.data.length, 'features');
       } catch (err) {
-        console.error('Failed to fetch map data', err.message);
-        setError(err.message);
+        console.error('Failed to fetch map data:', err.message);
+        setErrorMsg(err.message);
       } finally {
         setLoading(false);
       }
@@ -28,98 +28,84 @@ export default function MapScreen() {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#2563eb" />
-        <Text style={styles.loadingText}>Loading map data...</Text>
+        <Text style={styles.loadingText}>Loading map...</Text>
       </View>
     );
   }
 
-  const generateMapFeatures = () => {
-    let script = '';
-    mapData.forEach(feature => {
-      if (!feature || !feature.type) return;
-      try {
-        if (feature.type === 'Point' && feature.coordinates) {
-          const lat = feature.coordinates.latitude;
-          const lng = feature.coordinates.longitude;
-          const name = (feature.name || '').replace(/'/g, "\\'");
-          const desc = (feature.description || '').replace(/'/g, "\\'");
-          const color = feature.color || '#ff0000';
-          script += `
-            L.circleMarker([${lat}, ${lng}], {
-              radius: 10,
-              fillColor: '${color}',
-              color: '#fff',
-              weight: 2,
-              opacity: 1,
-              fillOpacity: 0.9
-            }).addTo(map).bindPopup('<b>${name}</b><br/>${desc}');
-          `;
-        } else if (feature.type === 'Polygon' && feature.coordinates && feature.coordinates.length > 0) {
-          const latLngs = feature.coordinates.map(c => `[${c.latitude}, ${c.longitude}]`).join(',');
-          const name = (feature.name || '').replace(/'/g, "\\'");
-          const color = feature.color || '#ff0000';
-          script += `
-            L.polygon([${latLngs}], {
-              color: '${color}',
-              fillColor: '${color}',
-              weight: 2,
-              fillOpacity: 0.4
-            }).addTo(map).bindPopup('<b>${name}</b>');
-          `;
-        } else if (feature.type === 'LineString' && feature.coordinates && feature.coordinates.length > 0) {
-          const latLngs = feature.coordinates.map(c => `[${c.latitude}, ${c.longitude}]`).join(',');
-          const name = (feature.name || '').replace(/'/g, "\\'");
-          const color = feature.color || '#ff0000';
-          script += `
-            L.polyline([${latLngs}], {
-              color: '${color}',
-              weight: 4
-            }).addTo(map).bindPopup('<b>${name}</b>');
-          `;
-        }
-      } catch(e) {}
-    });
-    return script;
-  };
-
-  const htmlContent = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body, #map { height: 100%; width: 100%; }
-    .leaflet-control-attribution { display: none !important; }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
-  <script>
-    var map = L.map('map', { zoomControl: true }).setView([16.8524, 74.5815], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap'
-    }).addTo(map);
-    ${generateMapFeatures()}
-  </script>
-</body>
-</html>`;
-
   return (
     <View style={styles.container}>
-      <WebView
-        ref={webViewRef}
-        source={{ html: htmlContent }}
+      <MapView
         style={styles.map}
-        javaScriptEnabled={true}
-        domStorageEnabled={true}
-        originWhitelist={['*']}
-        mixedContentMode="always"
-        onError={(e) => console.error('WebView error:', e.nativeEvent)}
-      />
+        mapType="none"
+        initialRegion={{
+          latitude: 16.8524,
+          longitude: 74.5815,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        }}
+        showsUserLocation={true}
+        showsMyLocationButton={true}
+        zoomControlsEnabled={true}
+      >
+        {/* OpenStreetMap tiles - completely free, no Google billing needed */}
+        <UrlTile
+          urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maximumZ={19}
+          flipY={false}
+          tileSize={256}
+        />
+
+        {mapData.map((feature) => {
+          if (!feature || !feature.type) return null;
+
+          if (feature.type === 'Point' && feature.coordinates) {
+            return (
+              <Marker
+                key={feature._id}
+                coordinate={{
+                  latitude: feature.coordinates.latitude,
+                  longitude: feature.coordinates.longitude,
+                }}
+                title={feature.name}
+                description={feature.description}
+                pinColor={feature.color || '#ff0000'}
+              />
+            );
+          }
+
+          if (feature.type === 'LineString' && feature.coordinates?.length > 0) {
+            return (
+              <Polyline
+                key={feature._id}
+                coordinates={feature.coordinates}
+                strokeColor={feature.color || '#ff0000'}
+                strokeWidth={4}
+              />
+            );
+          }
+
+          if (feature.type === 'Polygon' && feature.coordinates?.length > 0) {
+            return (
+              <Polygon
+                key={feature._id}
+                coordinates={feature.coordinates}
+                fillColor={`${feature.color || '#ff0000'}55`}
+                strokeColor={feature.color || '#ff0000'}
+                strokeWidth={2}
+              />
+            );
+          }
+
+          return null;
+        })}
+      </MapView>
+
+      {errorMsg && (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorText}>Could not load overlay data</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -129,4 +115,16 @@ const styles = StyleSheet.create({
   map: { flex: 1 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8fafc' },
   loadingText: { marginTop: 12, color: '#64748b', fontSize: 14 },
+  errorBanner: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: '#fef2f2',
+    borderRadius: 8,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+  },
+  errorText: { color: '#dc2626', fontSize: 13, textAlign: 'center' },
 });
