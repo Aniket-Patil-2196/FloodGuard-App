@@ -6,32 +6,31 @@ import { fetchFloodNews } from '../services/newsService';
 export const handleChat = async (req: Request, res: Response) => {
   const { message, language, history, location } = req.body;
   
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  // Log every incoming request for full traceability
-  console.log("=== CHAT REQUEST RECEIVED ===");
-  console.log("Message:", message);
-  console.log("Language:", language);
-  console.log("Location:", location);
-  console.log("GEMINI_API_KEY present:", !!apiKey);
-  console.log("GEMINI_API_KEY length:", apiKey ? apiKey.length : 0);
-  console.log("GEMINI_API_KEY first 8 chars:", apiKey ? apiKey.substring(0, 8) : "MISSING");
-
-  if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey === "") {
-    console.error("GEMINI_API_KEY is missing or not configured");
-    return res.status(500).json({ error: "GEMINI_API_KEY is not configured on the server" });
-  }
-
   try {
-    const weather = await fetchRainfallData(location || 'Mumbai');
-    const news = await fetchFloodNews(`flood ${location || 'Mumbai'}`);
-    console.log("Weather fetched:", JSON.stringify(weather));
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    // Diagnostic logging
+    console.log("=== CHAT REQUEST ===");
+    console.log("Message:", message);
+    console.log("Language:", language);
+    console.log("API Key present:", !!apiKey);
+    console.log("API Key:", apiKey ? `${apiKey.substring(0, 6)}...${apiKey.slice(-4)}` : "MISSING");
+
+    if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey === "") {
+      throw new Error("GEMINI_API_KEY is not configured on the server");
+    }
 
     const ai = new GoogleGenAI({ apiKey });
-    const model = "gemini-2.0-flash";
+    const model = "gemini-3-flash-preview"; // Restored to last known working model
+
+    console.log("Selected Gemini model:", model);
+
+    // Fetch real-time context
+    const weather = await fetchRainfallData(location || 'Mumbai');
+    const news = await fetchFloodNews(`flood ${location || 'Mumbai'}`);
 
     const context = `
-      Current Weather in ${weather.city || 'Mumbai'}:
+      Current Weather in ${location || 'Mumbai'}:
       - Rainfall: ${weather.rainfall}mm
       - Temperature: ${weather.temperature}°C
       - Humidity: ${weather.humidity}%
@@ -39,6 +38,8 @@ export const handleChat = async (req: Request, res: Response) => {
       Recent News:
       ${news.map((n: any) => `- ${n.title}: ${n.description}`).join('\n')}
     `;
+
+    console.log("Prompt context length:", context.length, "chars");
 
     const systemInstruction = `
       You are FloodGuard AI, a highly intelligent, empathetic, and professional emergency assistant.
@@ -59,34 +60,26 @@ export const handleChat = async (req: Request, res: Response) => {
       ${context}
     `;
 
-    console.log("Calling Gemini model:", model);
-    
     const chat = ai.chats.create({
       model,
-      config: {
-        systemInstruction,
-      },
+      config: { systemInstruction },
       history: history || [],
     });
 
     const result = await chat.sendMessage({ message });
     const reply = result.text || "I'm sorry, I couldn't process that request.";
     
-    console.log("Gemini responded successfully. Reply length:", reply.length);
+    console.log("Gemini SUCCESS. Reply length:", reply.length);
     res.json({ response: reply });
 
   } catch (error: any) {
-    // Log the FULL raw error - no hiding behind mock responses
+    // Return raw error - NO mock responses
     console.error("=== GEMINI ERROR ===");
-    console.error("Error message:", error.message);
-    console.error("Error status:", error.status);
+    console.error("Message:", error.message);
     console.error("Full error:", JSON.stringify(error, null, 2));
-    
-    // Return the real error to the client so we can see it in the mobile app
     res.status(500).json({ 
       error: error.message || "Failed to process chat request",
       geminiStatus: error.status || null,
-      details: error.errorDetails || null
     });
   }
 };
@@ -113,13 +106,11 @@ export const analyzeRisk = async (req: Request, res: Response) => {
       }
     `;
 
-    const chat = ai.chats.create({
-      model: "gemini-2.0-flash",
-      config: {
-        systemInstruction: "You are a flood risk analyst. Return only valid JSON.",
-      }
+    const result = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: { responseMimeType: "application/json" }
     });
-    const result = await chat.sendMessage({ message: prompt });
 
     res.json(JSON.parse(result.text || "{}"));
   } catch (error) {
