@@ -35,8 +35,8 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-userSchema.pre<IUser>('save', async function(next) {
-  if (!this.isModified('password')) return next();
+userSchema.pre('save', async function() {
+  if (!this.isModified('password')) return;
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });

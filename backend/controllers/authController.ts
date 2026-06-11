@@ -10,7 +10,11 @@ const generateToken = (id: string) => {
 };
 
 export const registerUser = async (req: Request, res: Response) => {
-  const { name, email, phone, password, village, language, familyMembers, animals, latitude, longitude, role } = req.body;
+  const { name, phone, password, village, language, familyMembers, animals, latitude, longitude, role } = req.body;
+  let { email } = req.body;
+  if (!email || email.trim() === '') {
+    email = `${phone}@noemail.floodguard.com`;
+  }
 
   try {
     const userExists = await User.findOne({ phone });

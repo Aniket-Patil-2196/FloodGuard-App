@@ -33,11 +33,13 @@ export async function registerForPushNotificationsAsync() {
   }
   
   try {
-    const projectId = "your-project-id"; // In a real app with EAS, get this from Constants.expoConfig.extra.eas.projectId
+    const projectId = "184e3513-8f3a-46ab-bb58-9c8808ec508d"; // Using actual EAS project ID
     token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
   } catch (e) {
-    // Fallback if not using EAS yet
-    token = (await Notifications.getExpoPushTokenAsync()).data;
+    console.warn('Push Notifications failed:', e.message);
+    console.warn('Returning mock token so the app can continue running locally.');
+    // Return a mock token so Login/Registration APIs don't fail when saving the user
+    token = 'ExponentPushToken[mock_local_dev_token]';
   }
 
   return token;

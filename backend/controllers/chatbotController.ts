@@ -16,11 +16,11 @@ export const handleChat = async (req: Request, res: Response) => {
     const model = "gemini-3-flash-preview";
 
     // Fetch real-time context
-    const weather = await fetchRainfallData(location || 'Sangli');
-    const news = await fetchFloodNews(`flood ${location || 'Sangli'}`);
+    const weather = await fetchRainfallData(location || 'Mumbai');
+    const news = await fetchFloodNews(`flood ${location || 'Mumbai'}`);
 
     const context = `
-      Current Weather in ${location || 'Sangli'}:
+      Current Weather in ${location || 'Mumbai'}:
       - Rainfall: ${weather.rainfall}mm
       - Temperature: ${weather.temperature}°C
       - Humidity: ${weather.humidity}%
@@ -60,7 +60,7 @@ export const handleChat = async (req: Request, res: Response) => {
     const result = await chat.sendMessage({ message });
     const reply = result.text || "I'm sorry, I couldn't process that request.";
     
-    res.json({ reply });
+    res.json({ response: reply });
   } catch (error) {
     console.error("Chatbot error:", error);
     res.status(500).json({ error: "Failed to process chat request" });

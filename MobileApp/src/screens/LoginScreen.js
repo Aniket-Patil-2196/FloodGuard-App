@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/apiClient';
-
 import { registerForPushNotificationsAsync } from '../utils/pushNotifications';
 
 export default function LoginScreen({ navigation }) {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    setErrorMsg('');
     if (!phone || !password) {
-      Alert.alert('Error', 'Please fill all fields');
+      setErrorMsg('Please enter both your phone number and password.');
       return;
     }
     setLoading(true);
@@ -22,8 +23,8 @@ export default function LoginScreen({ navigation }) {
       const response = await apiClient.post('/auth/login', { phone, password, expoPushToken });
       await login(response.data);
     } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message || 'Something went wrong';
-      Alert.alert('Login Failed', errorMessage);
+      const errorMessage = error.response?.data?.message || 'Unable to connect to the server. Please try again.';
+      setErrorMsg(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -32,35 +33,53 @@ export default function LoginScreen({ navigation }) {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.title}>FloodGuard</Text>
-        <Text style={styles.subtitle}>Sign in to your account</Text>
+        <View style={styles.headerContainer}>
+          <Text style={styles.title}>FloodGuard</Text>
+          <Text style={styles.subtitle}>Welcome back. Sign in to continue.</Text>
+        </View>
         
-        <TextInput
-          style={styles.input}
-          placeholder="Phone Number"
-          placeholderTextColor="#94a3b8"
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={setPhone}
-        />
+        {errorMsg ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{errorMsg}</Text>
+          </View>
+        ) : null}
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Phone Number</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="e.g., 7773930812"
+            placeholderTextColor="#94a3b8"
+            keyboardType="phone-pad"
+            value={phone}
+            onChangeText={(t) => { setPhone(t); setErrorMsg(''); }}
+          />
+        </View>
         
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor="#94a3b8"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="••••••••"
+            placeholderTextColor="#94a3b8"
+            secureTextEntry
+            value={password}
+            onChangeText={(t) => { setPassword(t); setErrorMsg(''); }}
+          />
+        </View>
         
         <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-          <Text style={styles.buttonText}>{loading ? 'Signing in...' : 'Sign In'}</Text>
+          {loading ? (
+            <ActivityIndicator color="#ffffff" />
+          ) : (
+            <Text style={styles.buttonText}>Sign In</Text>
+          )}
         </TouchableOpacity>
         
         <View style={styles.footer}>
           <Text style={styles.footerText}>Don't have an account? </Text>
           <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-            <Text style={styles.link}>Register</Text>
+            <Text style={styles.link}>Create Account</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -71,59 +90,92 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f4f5',
+    backgroundColor: '#f1f5f9',
     justifyContent: 'center',
     padding: 20,
   },
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    borderRadius: 20,
+    padding: 28,
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.05,
+    shadowRadius: 20,
+    elevation: 4,
+  },
+  headerContainer: {
+    marginBottom: 32,
+    alignItems: 'center',
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1e3a8a',
-    textAlign: 'center',
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#1e40af',
     marginBottom: 8,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#64748b',
     textAlign: 'center',
-    marginBottom: 24,
+  },
+  errorContainer: {
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 20,
+  },
+  errorText: {
+    color: '#dc2626',
+    fontSize: 14,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#334155',
+    marginBottom: 8,
+    marginLeft: 4,
   },
   input: {
     backgroundColor: '#f8fafc',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#e2e8f0',
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 16,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 16,
-    color: '#1e293b',
+    color: '#0f172a',
   },
   button: {
     backgroundColor: '#2563eb',
-    borderRadius: 8,
-    padding: 16,
+    borderRadius: 12,
+    paddingVertical: 16,
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 12,
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 3,
   },
   buttonText: {
     color: '#ffffff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 24,
+    marginTop: 28,
   },
   footerText: {
     color: '#64748b',
@@ -132,6 +184,6 @@ const styles = StyleSheet.create({
   link: {
     color: '#2563eb',
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
 });
