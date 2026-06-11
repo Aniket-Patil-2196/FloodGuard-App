@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#1e3a8a' },
-  langBtn: { backgroundColor: '#f1f5f9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
+  langBtn: { backgroundColor: '#f1f5f9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, marginRight: 40 },
   langBtnText: { color: '#475569', fontSize: 13, fontWeight: '600' },
   langPicker: { backgroundColor: '#ffffff', elevation: 4, position: 'absolute', top: 60, right: 10, zIndex: 10, borderRadius: 8, padding: 8 },
   langOption: { paddingVertical: 8, paddingHorizontal: 16 },
