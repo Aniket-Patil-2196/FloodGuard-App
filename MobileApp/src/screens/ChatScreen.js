@@ -13,6 +13,9 @@ const LANGUAGES = [
   { code: 'mr-IN', label: 'Marathi (मराठी)' },
   { code: 'kn-IN', label: 'Kannada (ಕನ್ನಡ)' },
   { code: 'te-IN', label: 'Telugu (తెలుగు)' },
+  { code: 'ta-IN', label: 'Tamil (தமிழ்)' },
+  { code: 'gu-IN', label: 'Gujarati (ગુજરાતી)' },
+  { code: 'bn-IN', label: 'Bengali (বাংলা)' },
 ];
 
 export default function ChatScreen() {
@@ -84,13 +87,17 @@ export default function ChatScreen() {
     setIsTyping(true);
 
     try {
+      console.log("Sending chat request:", { message: userMsg.text, language: selectedLang.label });
       const res = await apiClient.post('/chat', { 
         message: userMsg.text,
         language: selectedLang.label 
       });
+      console.log("Chat response received:", res.data);
       setMessages(prev => [...prev, { id: Date.now()+1, text: res.data.response, sender: 'bot' }]);
     } catch (e) {
-      setMessages(prev => [...prev, { id: Date.now()+1, text: "Unable to connect to AI server. Please try again.", sender: 'bot' }]);
+      const errorMsg = e.response?.data?.error || e.message || "Network error";
+      console.error("Chat error:", e.response?.status, errorMsg);
+      setMessages(prev => [...prev, { id: Date.now()+1, text: `ERROR: ${errorMsg}`, sender: 'bot' }]);
     } finally {
       setIsTyping(false);
     }

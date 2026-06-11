@@ -6,17 +6,26 @@ import { fetchFloodNews } from '../services/newsService';
 export const handleChat = async (req: Request, res: Response) => {
   const { message, language, history, location } = req.body;
   
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  // Log every incoming request for full traceability
+  console.log("=== CHAT REQUEST RECEIVED ===");
+  console.log("Message:", message);
+  console.log("Language:", language);
+  console.log("Location:", location);
+  console.log("GEMINI_API_KEY present:", !!apiKey);
+  console.log("GEMINI_API_KEY length:", apiKey ? apiKey.length : 0);
+  console.log("GEMINI_API_KEY first 8 chars:", apiKey ? apiKey.substring(0, 8) : "MISSING");
+
+  if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey === "") {
+    console.error("GEMINI_API_KEY is missing or not configured");
+    return res.status(500).json({ error: "GEMINI_API_KEY is not configured on the server" });
+  }
+
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
     const weather = await fetchRainfallData(location || 'Mumbai');
     const news = await fetchFloodNews(`flood ${location || 'Mumbai'}`);
-
-    if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey === "") {
-      console.warn("GEMINI_API_KEY is missing. Returning mock AI response.");
-      return res.json({ 
-        response: `**[MOCK AI RESPONSE]**\nHello! I am your AI assistant. I received your message: "${message}".\n\n*Current Weather in ${weather.city || 'your area'}:*\n- Rainfall: ${weather.rainfall}mm\n- Temperature: ${weather.temperature}°C\n- Humidity: ${weather.humidity}%\n\n*Please ensure your GEMINI_API_KEY is configured on the backend for real responses.*` 
-      });
-    }
+    console.log("Weather fetched:", JSON.stringify(weather));
 
     const ai = new GoogleGenAI({ apiKey });
     const model = "gemini-2.0-flash";
@@ -50,6 +59,8 @@ export const handleChat = async (req: Request, res: Response) => {
       ${context}
     `;
 
+    console.log("Calling Gemini model:", model);
+    
     const chat = ai.chats.create({
       model,
       config: {
@@ -61,13 +72,22 @@ export const handleChat = async (req: Request, res: Response) => {
     const result = await chat.sendMessage({ message });
     const reply = result.text || "I'm sorry, I couldn't process that request.";
     
+    console.log("Gemini responded successfully. Reply length:", reply.length);
     res.json({ response: reply });
+
   } catch (error: any) {
-    console.error("Chatbot error:", error.message || error);
-    // Graceful fallback if Gemini API hits quota limit
-    const fallbackMessage = `**[MOCK AI RESPONSE - API RATE LIMITED]**\n\nI received your message: "${message}".\n\nYou have selected language: **${language || 'English'}**.\n\n*Current Weather in ${location || 'your area'}:*\n- Rainfall: ${req.body.weather?.rainfall || 0}mm\n- Temperature: ${req.body.weather?.temperature || 28}°C\n\n*(Note: Your Google Gemini API Key has exceeded its free tier quota. Please upgrade or use a new key for real AI responses.)*`;
+    // Log the FULL raw error - no hiding behind mock responses
+    console.error("=== GEMINI ERROR ===");
+    console.error("Error message:", error.message);
+    console.error("Error status:", error.status);
+    console.error("Full error:", JSON.stringify(error, null, 2));
     
-    res.status(200).json({ response: fallbackMessage });
+    // Return the real error to the client so we can see it in the mobile app
+    res.status(500).json({ 
+      error: error.message || "Failed to process chat request",
+      geminiStatus: error.status || null,
+      details: error.errorDetails || null
+    });
   }
 };
 
@@ -96,7 +116,7 @@ export const analyzeRisk = async (req: Request, res: Response) => {
     const chat = ai.chats.create({
       model: "gemini-2.0-flash",
       config: {
-        systemInstruction: "You are a flood risk analyst.",
+        systemInstruction: "You are a flood risk analyst. Return only valid JSON.",
       }
     });
     const result = await chat.sendMessage({ message: prompt });
