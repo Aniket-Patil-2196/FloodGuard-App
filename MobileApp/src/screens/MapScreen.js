@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import MapView, { Marker, Polyline, Polygon, UrlTile } from 'react-native-maps';
 import apiClient from '../api/apiClient';
 import { Layers } from 'lucide-react-native';
@@ -27,10 +27,7 @@ export default function MapScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: '#ADD8E6' }]}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'red', textAlign: 'center', width: '100%', marginVertical: 10, backgroundColor: 'yellow' }}>
-        MAP BUILD TEST 001
-      </Text>
+    <View style={styles.container}>
       <MapView 
         style={styles.map}
         mapType="none"

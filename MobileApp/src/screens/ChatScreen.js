@@ -17,7 +17,7 @@ const LANGUAGES = [
 
 export default function ChatScreen() {
   const [messages, setMessages] = useState([
-    { id: 1, text: "BUILD TEST 001 ACTIVE", sender: 'bot' }
+    { id: 1, text: "Hello! I am the FloodGuard AI. How can I help you?", sender: 'bot' }
   ]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -98,10 +98,7 @@ export default function ChatScreen() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
-      <View style={[styles.header, { backgroundColor: 'red' }]}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'white', textAlign: 'center', width: '100%', marginBottom: 10 }}>
-          BUILD TEST 001
-        </Text>
+      <View style={styles.header}>
         <Text style={styles.headerTitle}>FloodGuard AI</Text>
         <TouchableOpacity style={styles.langBtn} onPress={() => setShowLangPicker(!showLangPicker)}>
           <Text style={styles.langBtnText}>{selectedLang.label} ▼</Text>
