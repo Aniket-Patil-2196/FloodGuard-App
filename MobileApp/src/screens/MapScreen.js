@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
-import MapView, { Marker, Polyline, Polygon } from 'react-native-maps';
+import MapView, { Marker, Polyline, Polygon, UrlTile } from 'react-native-maps';
 import apiClient from '../api/apiClient';
+import { Layers } from 'lucide-react-native';
 
 export default function MapScreen() {
   const [mapData, setMapData] = useState([]);
@@ -22,13 +23,21 @@ export default function MapScreen() {
   }, []);
 
   if (loading) {
-    return <View style={styles.centered}><ActivityIndicator size="large" /></View>;
+    return <View style={styles.centered}><ActivityIndicator size="large" color="#2563eb" /></View>;
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: '#ADD8E6' }]}>
+      <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'red', textAlign: 'center', width: '100%', marginVertical: 10, backgroundColor: 'yellow' }}>
+        MAP BUILD TEST 001
+      </Text>
       <MapView 
         style={styles.map}
+        mapType="none"
+        showsUserLocation={true}
+        showsMyLocationButton={true}
+        showsCompass={true}
+        zoomControlsEnabled={true}
         initialRegion={{
           latitude: 16.8524,
           longitude: 74.5815,
@@ -36,6 +45,11 @@ export default function MapScreen() {
           longitudeDelta: 0.0421,
         }}
       >
+        <UrlTile
+          urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maximumZ={19}
+          flipY={false}
+        />
         {mapData.map((feature) => {
           if (feature.type === 'Point') {
             return (
@@ -44,6 +58,7 @@ export default function MapScreen() {
                 coordinate={feature.coordinates}
                 title={feature.name}
                 description={feature.description}
+                pinColor={feature.color || '#ff0000'}
               />
             );
           } else if (feature.type === 'LineString') {
