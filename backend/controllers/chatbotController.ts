@@ -8,19 +8,21 @@ export const handleChat = async (req: Request, res: Response) => {
   
   try {
     const apiKey = process.env.GEMINI_API_KEY;
+    const weather = await fetchRainfallData(location || 'Mumbai');
+    const news = await fetchFloodNews(`flood ${location || 'Mumbai'}`);
+
     if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey === "") {
-      throw new Error("GEMINI_API_KEY is not configured correctly");
+      console.warn("GEMINI_API_KEY is missing. Returning mock AI response.");
+      return res.json({ 
+        response: `**[MOCK AI RESPONSE]**\nHello! I am your AI assistant. I received your message: "${message}".\n\n*Current Weather in ${weather.city || 'your area'}:*\n- Rainfall: ${weather.rainfall}mm\n- Temperature: ${weather.temperature}°C\n- Humidity: ${weather.humidity}%\n\n*Please ensure your GEMINI_API_KEY is configured on the backend for real responses.*` 
+      });
     }
 
     const ai = new GoogleGenAI({ apiKey });
     const model = "gemini-1.5-flash";
 
-    // Fetch real-time context
-    const weather = await fetchRainfallData(location || 'Mumbai');
-    const news = await fetchFloodNews(`flood ${location || 'Mumbai'}`);
-
     const context = `
-      Current Weather in ${location || 'Mumbai'}:
+      Current Weather in ${weather.city || 'Mumbai'}:
       - Rainfall: ${weather.rainfall}mm
       - Temperature: ${weather.temperature}°C
       - Humidity: ${weather.humidity}%
