@@ -19,7 +19,7 @@ export const handleChat = async (req: Request, res: Response) => {
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    const model = "gemini-1.5-flash";
+    const model = "gemini-2.0-flash";
 
     const context = `
       Current Weather in ${weather.city || 'Mumbai'}:
@@ -90,11 +90,13 @@ export const analyzeRisk = async (req: Request, res: Response) => {
       }
     `;
 
-    const result = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
-      contents: prompt,
-      config: { responseMimeType: "application/json" }
+    const chat = ai.chats.create({
+      model: "gemini-2.0-flash",
+      config: {
+        systemInstruction: "You are a flood risk analyst.",
+      }
     });
+    const result = await chat.sendMessage({ message: prompt });
 
     res.json(JSON.parse(result.text || "{}"));
   } catch (error) {
