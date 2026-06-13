@@ -59,7 +59,7 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
 
 userSchema.index({ location: '2dsphere' });
 
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function() {
   if (this.latitude && this.longitude) {
     this.location = {
       type: 'Point',
@@ -69,10 +69,10 @@ userSchema.pre('save', async function(next) {
     this.location = undefined;
   }
 
-  if (!this.isModified('password')) return next();
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
+  if (this.isModified('password')) {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+  }
 });
 
 const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', userSchema);
