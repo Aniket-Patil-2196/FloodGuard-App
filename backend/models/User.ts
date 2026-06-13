@@ -42,7 +42,7 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
   latitude: { type: Number },
   longitude: { type: Number },
   location: {
-    type: { type: String, enum: ['Point'], default: 'Point' },
+    type: { type: String, enum: ['Point'] },
     coordinates: { type: [Number] } // [lng, lat]
   },
   city: { type: String },
@@ -60,13 +60,13 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
 userSchema.index({ location: '2dsphere' });
 
 userSchema.pre('save', async function(next) {
-  if (this.isModified('latitude') || this.isModified('longitude')) {
-    if (this.latitude && this.longitude) {
-      this.location = {
-        type: 'Point',
-        coordinates: [this.longitude, this.latitude]
-      };
-    }
+  if (this.latitude && this.longitude) {
+    this.location = {
+      type: 'Point',
+      coordinates: [this.longitude, this.latitude]
+    };
+  } else {
+    this.location = undefined;
   }
 
   if (!this.isModified('password')) return next();
