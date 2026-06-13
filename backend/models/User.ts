@@ -20,6 +20,11 @@ export interface IUser extends Document {
   role: 'user' | 'admin';
   expoPushToken?: string;
   notificationsEnabled: boolean;
+  city?: string;
+  district?: string;
+  state?: string;
+  locationSource?: 'GPS' | 'MANUAL' | 'REGISTRATION';
+  lastLocationUpdate?: Date;
   lastActive: Date;
   createdAt: Date;
   isModified(path: string): boolean;
@@ -40,6 +45,11 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
     type: { type: String, enum: ['Point'], default: 'Point' },
     coordinates: { type: [Number] } // [lng, lat]
   },
+  city: { type: String },
+  district: { type: String },
+  state: { type: String },
+  locationSource: { type: String, enum: ['GPS', 'MANUAL', 'REGISTRATION'] },
+  lastLocationUpdate: { type: Date },
   expoPushToken: { type: String },
   notificationsEnabled: { type: Boolean, default: true },
   lastActive: { type: Date, default: Date.now },

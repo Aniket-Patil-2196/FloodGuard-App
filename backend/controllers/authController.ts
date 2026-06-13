@@ -152,7 +152,56 @@ export const updateSettings = async (req: Request, res: Response) => {
       animals: user.animals,
       role: user.role,
       notificationsEnabled: user.notificationsEnabled,
+      city: user.city,
+      district: user.district,
+      state: user.state,
+      locationSource: user.locationSource,
+      latitude: user.latitude,
+      longitude: user.longitude,
       token: req.headers.authorization?.split(' ')[1] // return existing token
+    });
+  } catch (error) {
+    res.status(500).json({ message: (error as Error).message });
+  }
+};
+
+export const updateLocation = async (req: Request, res: Response) => {
+  const { city, district, state, latitude, longitude, locationSource } = req.body;
+  const userId = (req as any).user?._id;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (city !== undefined) user.city = city;
+    if (district !== undefined) user.district = district;
+    if (state !== undefined) user.state = state;
+    if (latitude !== undefined) user.latitude = latitude;
+    if (longitude !== undefined) user.longitude = longitude;
+    if (locationSource !== undefined) user.locationSource = locationSource;
+    
+    user.lastLocationUpdate = new Date();
+
+    await user.save();
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      village: user.village,
+      language: user.language,
+      familyMembers: user.familyMembers,
+      animals: user.animals,
+      role: user.role,
+      notificationsEnabled: user.notificationsEnabled,
+      city: user.city,
+      district: user.district,
+      state: user.state,
+      locationSource: user.locationSource,
+      latitude: user.latitude,
+      longitude: user.longitude,
+      token: req.headers.authorization?.split(' ')[1]
     });
   } catch (error) {
     res.status(500).json({ message: (error as Error).message });
