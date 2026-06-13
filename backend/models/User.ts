@@ -13,8 +13,14 @@ export interface IUser extends Document {
   animals: number;
   latitude?: number;
   longitude?: number;
+  location?: {
+    type: 'Point';
+    coordinates: [number, number]; // [longitude, latitude]
+  };
   role: 'user' | 'admin';
   expoPushToken?: string;
+  notificationsEnabled: boolean;
+  lastActive: Date;
   createdAt: Date;
   isModified(path: string): boolean;
 }
@@ -30,15 +36,33 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
   animals: { type: Number, default: 0 },
   latitude: { type: Number },
   longitude: { type: Number },
+  location: {
+    type: { type: String, enum: ['Point'], default: 'Point' },
+    coordinates: { type: [Number] } // [lng, lat]
+  },
   expoPushToken: { type: String },
+  notificationsEnabled: { type: Boolean, default: true },
+  lastActive: { type: Date, default: Date.now },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   createdAt: { type: Date, default: Date.now }
 });
 
-userSchema.pre('save', async function() {
-  if (!this.isModified('password')) return;
+userSchema.index({ location: '2dsphere' });
+
+userSchema.pre('save', async function(next) {
+  if (this.isModified('latitude') || this.isModified('longitude')) {
+    if (this.latitude && this.longitude) {
+      this.location = {
+        type: 'Point',
+        coordinates: [this.longitude, this.latitude]
+      };
+    }
+  }
+
+  if (!this.isModified('password')) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+  next();
 });
 
 const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', userSchema);

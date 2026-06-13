@@ -6,5 +6,4 @@ dist/
 MobileApp/node_modules/
 MobileApp/.expo/
 MobileApp/dist/
-ai-service/models/*.joblib
 *.log

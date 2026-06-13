@@ -39,6 +39,13 @@
           "icon": "./assets/icon.png",
           "color": "#ffffff"
         }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow FloodGuard to access your microphone",
+          "speechRecognitionPermission": "Allow FloodGuard to securely recognize user speech"
+        }
       ]
     ]
   }

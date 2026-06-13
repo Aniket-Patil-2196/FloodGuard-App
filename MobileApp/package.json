@@ -9,6 +9,7 @@
     "axios": "^1.17.0",
     "expo": "~55.0.26",
     "expo-dev-client": "~55.0.35",
+    "expo-device": "^56.0.4",
     "expo-document-picker": "~55.0.13",
     "expo-notifications": "~55.0.23",
     "expo-speech": "~55.0.14",
@@ -23,7 +24,8 @@
     "react-native-safe-area-context": "~5.6.2",
     "react-native-screens": "~4.23.0",
     "react-native-svg": "15.15.3",
-    "react-native-webview": "^13.16.1"
+    "react-native-webview": "^13.16.1",
+    "socket.io-client": "^4.8.3"
   },
   "scripts": {
     "start": "expo start",

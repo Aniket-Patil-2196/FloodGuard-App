@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { XMLParser } from 'fast-xml-parser';
 import MapData from '../models/MapData';
+import Alert from '../models/Alert';
 
 const extractPlacemarks = (obj: any): any[] => {
   let results: any[] = [];
@@ -89,6 +90,31 @@ export const getMapData = async (req: Request, res: Response) => {
   try {
     const data = await MapData.find({});
     
+    // Fetch Active Alerts with location
+    const activeAlerts = await Alert.find({ 
+      status: 'ACTIVE', 
+      location: { $exists: true } 
+    });
+
+    const alertFeatures = activeAlerts.map(alert => {
+      let color = '#2563eb';
+      if (alert.severity === 'CRITICAL') color = '#dc2626';
+      if (alert.severity === 'HIGH') color = '#ea580c';
+      if (alert.severity === 'MEDIUM') color = '#ca8a04';
+
+      return {
+        _id: alert._id.toString(),
+        type: 'Point',
+        name: `ALERT: ${alert.title}`,
+        description: alert.message,
+        color: color,
+        coordinates: {
+          latitude: alert.location?.coordinates[1] || 0,
+          longitude: alert.location?.coordinates[0] || 0
+        }
+      };
+    });
+    
     // Inject mock presentation data for visual richness
     const mockData = [
       {
@@ -145,7 +171,7 @@ export const getMapData = async (req: Request, res: Response) => {
       }
     ];
 
-    res.json([...data, ...mockData]);
+    res.json([...data, ...alertFeatures, ...mockData]);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch map data' });
   }

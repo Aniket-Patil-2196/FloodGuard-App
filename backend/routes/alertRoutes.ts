@@ -1,11 +1,17 @@
 import express from 'express';
-import { sendAlert, getAlerts, testSMS } from '../controllers/alertController';
+import { getAlerts, createAlert, updateAlert, deleteAlert, broadcastAlert, getActiveAlerts, getAlertStats } from '../controllers/alertController';
 import { protect, admin } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-router.post('/send', protect, admin, sendAlert);
-router.post('/test-sms', protect, admin, testSMS);
 router.get('/', protect, getAlerts);
+router.post('/', protect, admin, createAlert);
+router.put('/:id', protect, admin, updateAlert);
+router.delete('/:id', protect, admin, deleteAlert);
+
+// Analytics and Broadcaster
+router.get('/active', protect, getActiveAlerts);
+router.get('/stats', protect, admin, getAlertStats);
+router.post('/broadcast', protect, admin, broadcastAlert);
 
 export default router;

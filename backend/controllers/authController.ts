@@ -101,3 +101,60 @@ export const getAllUsers = async (req: Request, res: Response) => {
     res.status(500).json({ message: (error as Error).message });
   }
 };
+
+export const updatePushToken = async (req: Request, res: Response) => {
+  const { expoPushToken } = req.body;
+  const userId = (req as any).user?._id;
+
+  if (!expoPushToken || !userId) {
+    return res.status(400).json({ message: 'Token and User ID required' });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.expoPushToken = expoPushToken;
+    user.lastActive = new Date();
+    await user.save();
+
+    res.json({ message: 'Push token updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: (error as Error).message });
+  }
+};
+
+export const updateSettings = async (req: Request, res: Response) => {
+  const { notificationsEnabled } = req.body;
+  const userId = (req as any).user?._id;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (typeof notificationsEnabled === 'boolean') {
+      user.notificationsEnabled = notificationsEnabled;
+    }
+
+    await user.save();
+    
+    // Send back updated user object to save in AsyncStorage
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      village: user.village,
+      language: user.language,
+      familyMembers: user.familyMembers,
+      animals: user.animals,
+      role: user.role,
+      notificationsEnabled: user.notificationsEnabled,
+      token: req.headers.authorization?.split(' ')[1] // return existing token
+    });
+  } catch (error) {
+    res.status(500).json({ message: (error as Error).message });
+  }
+};

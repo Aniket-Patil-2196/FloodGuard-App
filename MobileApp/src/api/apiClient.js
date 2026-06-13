@@ -2,7 +2,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Point back to the deployed Render backend
-const API_BASE_URL = 'https://floodguard-app.onrender.com/api';
+export const SOCKET_URL = 'https://floodguard-app.onrender.com';
+const API_BASE_URL = `${SOCKET_URL}/api`;
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
