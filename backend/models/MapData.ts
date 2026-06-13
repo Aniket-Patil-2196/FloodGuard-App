@@ -6,6 +6,8 @@ export interface IMapData extends Document {
   description?: string;
   coordinates: any;
   color?: string;
+  kmlId?: mongoose.Types.ObjectId;
+  riskLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | 'NONE';
   uploadedAt: Date;
 }
 
@@ -15,6 +17,8 @@ const mapDataSchema: Schema<IMapData> = new mongoose.Schema({
   description: { type: String },
   coordinates: { type: Schema.Types.Mixed, required: true },
   color: { type: String, default: '#ff0000' },
+  kmlId: { type: Schema.Types.ObjectId, ref: 'KmlDocument' },
+  riskLevel: { type: String, enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL', 'NONE'], default: 'NONE' },
   uploadedAt: { type: Date, default: Date.now }
 });
 

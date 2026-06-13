@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { XMLParser } from 'fast-xml-parser';
 import MapData from '../models/MapData';
 import Alert from '../models/Alert';
+import KmlDocument from '../models/KmlDocument';
 
 const extractPlacemarks = (obj: any): any[] => {
   let results: any[] = [];
@@ -28,6 +29,43 @@ const extractPlacemarks = (obj: any): any[] => {
   return results;
 };
 
+const calculatePolygonArea = (coords: { latitude: number, longitude: number }[]): number => {
+  if (coords.length < 3) return 0;
+  let totalArea = 0;
+  const R = 6378.137; // Earth's radius in km
+  const d2r = Math.PI / 180;
+  
+  for (let i = 0; i < coords.length; i++) {
+    const p1 = coords[i];
+    const p2 = coords[(i + 1) % coords.length];
+    const x1 = p1.longitude * d2r * Math.cos((p1.latitude + p2.latitude) / 2 * d2r) * R;
+    const y1 = p1.latitude * d2r * R;
+    const x2 = p2.longitude * d2r * Math.cos((p1.latitude + p2.latitude) / 2 * d2r) * R;
+    const y2 = p2.latitude * d2r * R;
+    totalArea += (x1 * y2 - x2 * y1);
+  }
+  return Math.abs(totalArea / 2);
+};
+
+const parseRiskLevel = (name: string, desc: string): 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | 'NONE' => {
+  const text = `${name} ${desc}`.toLowerCase();
+  if (text.includes('critical') || text.includes('severe') || text.includes('danger') || text.includes('red')) return 'CRITICAL';
+  if (text.includes('high') || text.includes('warning') || text.includes('orange')) return 'HIGH';
+  if (text.includes('medium') || text.includes('moderate') || text.includes('yellow')) return 'MEDIUM';
+  if (text.includes('low') || text.includes('safe') || text.includes('green')) return 'LOW';
+  return 'NONE';
+};
+
+const getRiskColor = (level: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | 'NONE'): string => {
+  switch (level) {
+    case 'CRITICAL': return '#dc2626'; // Red
+    case 'HIGH': return '#ea580c'; // Orange
+    case 'MEDIUM': return '#eab308'; // Yellow
+    case 'LOW': return '#16a34a'; // Green
+    default: return '#2563eb'; // Default Blue
+  }
+};
+
 export const uploadKml = async (req: Request, res: Response) => {
   try {
     if (!req.file) {
@@ -40,10 +78,13 @@ export const uploadKml = async (req: Request, res: Response) => {
 
     const placemarks = extractPlacemarks(jsonObj);
 
-    // Optional: Only clear if you want 1 map at a time. Otherwise don't deleteMany.
-    await MapData.deleteMany({}); 
+    let polygonCount = 0;
+    let lineCount = 0;
+    let pointCount = 0;
+    let areaCovered = 0;
 
-    const savedData = [];
+    const parsedFeatures: any[] = [];
+
     for (const pm of placemarks) {
       let type: 'Point' | 'LineString' | 'Polygon' | null = null;
       let coords = null;
@@ -53,6 +94,7 @@ export const uploadKml = async (req: Request, res: Response) => {
         const [lng, lat] = pm.Point.coordinates.trim().split(',').map(Number);
         if (!isNaN(lng) && !isNaN(lat)) {
           coords = { latitude: lat, longitude: lng };
+          pointCount++;
         }
       } else if (pm.LineString && pm.LineString.coordinates) {
         type = 'LineString';
@@ -60,26 +102,71 @@ export const uploadKml = async (req: Request, res: Response) => {
           const [lng, lat] = c.split(',').map(Number);
           return { latitude: lat, longitude: lng };
         }).filter((c: any) => !isNaN(c.latitude));
+        if (coords.length > 0) {
+          lineCount++;
+        }
       } else if (pm.Polygon && pm.Polygon.outerBoundaryIs && pm.Polygon.outerBoundaryIs.LinearRing && pm.Polygon.outerBoundaryIs.LinearRing.coordinates) {
         type = 'Polygon';
         coords = pm.Polygon.outerBoundaryIs.LinearRing.coordinates.trim().split(/\s+/).map((c: string) => {
           const [lng, lat] = c.split(',').map(Number);
           return { latitude: lat, longitude: lng };
         }).filter((c: any) => !isNaN(c.latitude));
+        if (coords.length > 0) {
+          polygonCount++;
+          areaCovered += calculatePolygonArea(coords);
+        }
       }
 
       if (type && coords) {
-        const newMapData = await MapData.create({
+        const name = pm.name || 'Unnamed Feature';
+        const description = pm.description || '';
+        const risk = parseRiskLevel(name, description);
+        const color = getRiskColor(risk);
+
+        parsedFeatures.push({
           type,
-          name: pm.name || 'Unnamed Feature',
-          description: pm.description || '',
+          name,
+          description,
           coordinates: coords,
+          riskLevel: risk,
+          color
         });
-        savedData.push(newMapData);
       }
     }
 
-    res.json({ message: 'KML processed successfully', featuresProcessed: savedData.length });
+    if (parsedFeatures.length === 0) {
+      return res.status(400).json({ message: 'No valid mapping features found in KML file.' });
+    }
+
+    // Create the KmlDocument metadata entry
+    const kmlDoc = await KmlDocument.create({
+      fileName: req.file.originalname,
+      polygonCount,
+      lineCount,
+      pointCount,
+      areaCovered: Math.round(areaCovered * 100) / 100, // round to 2 decimal places
+      isActive: true
+    });
+
+    const savedData = [];
+    for (const feat of parsedFeatures) {
+      const newMapData = await MapData.create({
+        ...feat,
+        kmlId: kmlDoc._id
+      });
+      savedData.push(newMapData);
+    }
+
+    res.json({ 
+      message: 'KML processed successfully', 
+      kmlId: kmlDoc._id,
+      fileName: kmlDoc.fileName,
+      featuresProcessed: savedData.length,
+      polygons: polygonCount,
+      lines: lineCount,
+      points: pointCount,
+      areaCovered: kmlDoc.areaCovered
+    });
   } catch (error) {
     console.error('KML Upload Error:', error);
     res.status(500).json({ message: 'Failed to process KML' });
@@ -88,7 +175,14 @@ export const uploadKml = async (req: Request, res: Response) => {
 
 export const getMapData = async (req: Request, res: Response) => {
   try {
-    const data = await MapData.find({});
+    const activeKmls = await KmlDocument.find({ isActive: true });
+    const activeKmlIds = activeKmls.map(k => k._id);
+    const data = await MapData.find({
+      $or: [
+        { kmlId: { $in: activeKmlIds } },
+        { kmlId: { $exists: false } }
+      ]
+    });
     
     // Fetch Active Alerts with location
     const activeAlerts = await Alert.find({ 
@@ -174,5 +268,46 @@ export const getMapData = async (req: Request, res: Response) => {
     res.json([...data, ...alertFeatures, ...mockData]);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch map data' });
+  }
+};
+
+export const getKmlDocuments = async (req: Request, res: Response) => {
+  try {
+    const docs = await KmlDocument.find({}).sort({ uploadedAt: -1 });
+    res.json(docs);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch KML documents' });
+  }
+};
+
+export const updateKmlDocument = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { isActive, fileName } = req.body;
+  try {
+    const doc = await KmlDocument.findById(id);
+    if (!doc) return res.status(404).json({ message: 'KML Document not found' });
+    
+    if (isActive !== undefined) doc.isActive = isActive;
+    if (fileName !== undefined) doc.fileName = fileName;
+    
+    await doc.save();
+    res.json(doc);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update KML document' });
+  }
+};
+
+export const deleteKmlDocument = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const doc = await KmlDocument.findById(id);
+    if (!doc) return res.status(404).json({ message: 'KML Document not found' });
+    
+    await MapData.deleteMany({ kmlId: doc._id });
+    await doc.deleteOne();
+    
+    res.json({ message: 'KML Document and features deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete KML document' });
   }
 };
