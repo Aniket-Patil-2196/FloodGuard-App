@@ -32,9 +32,32 @@ export default function MapScreen() {
       } else if (user?.city || user?.village) {
         try {
           const place = `${user.city || user.village}, ${user.district || ''}, ${user.state || 'Maharashtra'}`;
-          const geocoded = await Location.geocodeAsync(place);
+          let geocoded = null;
+          
+          // Check permission before calling Expo geocoding
+          const { status } = await Location.getForegroundPermissionsAsync();
+          if (status === 'granted') {
+            try {
+              geocoded = await Location.geocodeAsync(place);
+            } catch (err) {
+              console.log('Expo geocodeAsync failed, trying Nominatim API instead:', err.message);
+            }
+          }
+          
           if (geocoded && geocoded.length > 0) {
             setUserCoords({ latitude: geocoded[0].latitude, longitude: geocoded[0].longitude });
+          } else {
+            // Fall back to Nominatim OpenStreetMap API
+            console.log('Resolving location via Nominatim API for:', place);
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(place)}&format=json&limit=1`, {
+              headers: { 'User-Agent': 'FloodGuardApp' }
+            });
+            const data = await response.json();
+            if (data && data.length > 0) {
+              setUserCoords({ latitude: parseFloat(data[0].lat), longitude: parseFloat(data[0].lon) });
+            } else {
+              console.log('Nominatim failed to resolve place');
+            }
           }
         } catch (e) {
           console.error('Geocoding fallback failed', e);
