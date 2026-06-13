@@ -30,7 +30,7 @@ const alertSchema: Schema<IAlert> = new mongoose.Schema({
   latitude: { type: Number },
   longitude: { type: Number },
   location: {
-    type: { type: String, enum: ['Point'], default: 'Point' },
+    type: { type: String, enum: ['Point'] },
     coordinates: { type: [Number] } // [lng, lat]
   },
   radius: { type: Number, default: 10 },
