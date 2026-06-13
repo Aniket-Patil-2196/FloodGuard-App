@@ -12,6 +12,7 @@ import ChatScreen from '../screens/ChatScreen';
 import AlertsScreen from '../screens/AlertsScreen';
 import AdminScreen from '../screens/AdminScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import ManualLocationScreen from '../screens/ManualLocationScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -37,6 +38,7 @@ export default function AppNavigator() {
             <Stack.Screen name="Chat" component={ChatScreen} />
             <Stack.Screen name="Alerts" component={AlertsScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="ManualLocation" component={ManualLocationScreen} options={{ presentation: 'modal' }} />
             {user.role === 'admin' && (
               <Stack.Screen name="Admin" component={AdminScreen} />
             )}

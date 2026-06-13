@@ -97,8 +97,22 @@ export const AuthProvider = ({ children }) => {
     await AsyncStorage.removeItem('user');
   };
 
+  const syncLocation = async (locationData) => {
+    try {
+      const response = await apiClient.put('/auth/location', locationData, {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      setUser(response.data);
+      await AsyncStorage.setItem('user', JSON.stringify(response.data));
+      return true;
+    } catch (e) {
+      console.error('Failed to sync location', e.message);
+      return false;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, syncLocation, loading }}>
       {children}
     </AuthContext.Provider>
   );

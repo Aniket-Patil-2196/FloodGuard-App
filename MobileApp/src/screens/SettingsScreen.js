@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Switch, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { Bell, ArrowLeft, ShieldCheck } from 'lucide-react-native';
+import { Bell, ArrowLeft, ShieldCheck, MapPin } from 'lucide-react-native';
 import apiClient from '../api/apiClient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -66,6 +66,32 @@ export default function SettingsScreen({ navigation }) {
           )}
         </View>
 
+        <View style={[styles.settingCard, { marginTop: 16, flexDirection: 'column', alignItems: 'stretch' }]}>
+          <View style={[styles.settingInfo, { marginBottom: 16 }]}>
+            <View style={[styles.iconWrapper, { backgroundColor: '#f3e8ff' }]}>
+              <MapPin color="#9333ea" size={24} />
+            </View>
+            <View>
+              <Text style={styles.settingTitle}>Current Location</Text>
+              <Text style={styles.settingDesc}>
+                {user?.locationSource === 'GPS' ? 'Auto-detected via GPS' : 
+                 user?.locationSource === 'MANUAL' ? 'Manually selected' : 
+                 'Registration data (Village)'}
+              </Text>
+            </View>
+          </View>
+          
+          <View style={styles.locationDetails}>
+            <Text style={styles.locationText}>City: <Text style={styles.locationValue}>{user?.city || user?.village || 'Not set'}</Text></Text>
+            <Text style={styles.locationText}>District: <Text style={styles.locationValue}>{user?.district || 'Not set'}</Text></Text>
+            <Text style={styles.locationText}>State: <Text style={styles.locationValue}>{user?.state || 'Maharashtra'}</Text></Text>
+          </View>
+
+          <TouchableOpacity style={styles.updateLocBtn} onPress={() => navigation.navigate('ManualLocation')}>
+            <Text style={styles.updateLocBtnText}>Update Location</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.infoCard}>
           <ShieldCheck color="#10b981" size={20} style={{ marginRight: 8 }} />
           <Text style={styles.infoText}>
@@ -110,5 +136,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#d1fae5'
   },
-  infoText: { flex: 1, color: '#047857', fontSize: 13, lineHeight: 20 }
+  infoText: { flex: 1, color: '#047857', fontSize: 13, lineHeight: 20 },
+  locationDetails: { backgroundColor: '#f8fafc', padding: 12, borderRadius: 12, marginBottom: 16 },
+  locationText: { fontSize: 14, color: '#64748b', marginBottom: 4 },
+  locationValue: { color: '#0f172a', fontWeight: '600' },
+  updateLocBtn: { backgroundColor: '#f1f5f9', padding: 12, borderRadius: 10, alignItems: 'center' },
+  updateLocBtnText: { color: '#2563eb', fontWeight: '700', fontSize: 14 }
 });

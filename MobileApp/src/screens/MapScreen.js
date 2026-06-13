@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { WebView } from 'react-native-webview';
+import * as Location from 'expo-location';
 import apiClient from '../api/apiClient';
+import { useAuth } from '../context/AuthContext';
 
 export default function MapScreen() {
+  const { user } = useAuth();
   const [mapData, setMapData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [userCoords, setUserCoords] = useState(null);
   const webViewRef = useRef(null);
 
   useEffect(() => {
@@ -21,8 +25,26 @@ export default function MapScreen() {
         setLoading(false);
       }
     };
+    
+    const resolveUserCoords = async () => {
+      if (user?.latitude && user?.longitude) {
+        setUserCoords({ latitude: user.latitude, longitude: user.longitude });
+      } else if (user?.city || user?.village) {
+        try {
+          const place = `${user.city || user.village}, ${user.district || ''}, ${user.state || 'Maharashtra'}`;
+          const geocoded = await Location.geocodeAsync(place);
+          if (geocoded && geocoded.length > 0) {
+            setUserCoords({ latitude: geocoded[0].latitude, longitude: geocoded[0].longitude });
+          }
+        } catch (e) {
+          console.error('Geocoding fallback failed', e);
+        }
+      }
+    };
+
     fetchMapData();
-  }, []);
+    resolveUserCoords();
+  }, [user]);
 
   if (loading) {
     return (
@@ -35,6 +57,21 @@ export default function MapScreen() {
 
   const generateMapFeatures = () => {
     let script = '';
+    
+    // Add user location blue marker
+    if (userCoords) {
+      script += `
+        L.circleMarker([${userCoords.latitude}, ${userCoords.longitude}], {
+          radius: 12,
+          fillColor: '#3b82f6',
+          color: '#ffffff',
+          weight: 3,
+          opacity: 1,
+          fillOpacity: 1
+        }).addTo(map).bindPopup('<b>Your Location</b><br/>${user?.city || user?.village || ''}');
+      `;
+    }
+
     mapData.forEach(feature => {
       if (!feature || !feature.type) return;
       try {
@@ -82,6 +119,9 @@ export default function MapScreen() {
     return script;
   };
 
+  const centerLat = userCoords ? userCoords.latitude : 16.8524;
+  const centerLng = userCoords ? userCoords.longitude : 74.5815;
+
   const htmlContent = `<!DOCTYPE html>
 <html>
 <head>
@@ -98,7 +138,7 @@ export default function MapScreen() {
 <body>
   <div id="map"></div>
   <script>
-    var map = L.map('map', { zoomControl: true }).setView([16.8524, 74.5815], 13);
+    var map = L.map('map', { zoomControl: true }).setView([${centerLat}, ${centerLng}], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '© OpenStreetMap'
